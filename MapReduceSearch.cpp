@@ -13,12 +13,13 @@ class MapReduceSearch : MapReduceBase{
 
     void Map(const k1Base *const key, const v1Base *const val){
 
-        SubStringKey & pattern = dynamic_cast<SubStringKey&>((*key));
 
-        FolderNameKey & folderName = dynamic_cast<FolderNameKey&>(*val);
+        const SubStringKey* pattern = dynamic_cast<const SubStringKey*>(key);
 
-        std::string patternString = pattern.getSubString();
-        std::string folderNameString = folderName.getFolderName();
+        const FolderNameKey* folderName = dynamic_cast<const FolderNameKey*>(val);
+
+        std::string patternString = pattern->getSubString();
+        std::string folderNameString = folderName->getFolderName();
 
         list<std::string> filesInCurrentFolder;
 
