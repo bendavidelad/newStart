@@ -4,9 +4,9 @@
 #include <libltdl/lt_system.h>
 #include <list>
 
-#include "MapReduceClientUser.h"
+#include "MapReduceClient.h"
 #include "MapReduceFramework.h"
-
+#include "MapReduceClientUser.h"
 using namespace std;
 
 class MapReduceSearch : MapReduceBase{
@@ -72,7 +72,7 @@ class MapReduceSearch : MapReduceBase{
         delete(fileNameReduce);
     }
 
-    // check
+    // check gregerg
 
 
 };

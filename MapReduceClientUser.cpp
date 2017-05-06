@@ -27,6 +27,8 @@ SubStringKey::~SubStringKey() {
 
 
 
+
+
 /**
  *
  * FolderNameKey class
@@ -120,3 +122,5 @@ int NumOfFiles::getNumOfFiles() const
 {
     return numFiles;
 }
+
+
