@@ -7,6 +7,11 @@
 #include "MapReduceClient.h"
 #include "MapReduceFramework.h"
 #include "MapReduceClientUser.h"
+<<<<<<< HEAD
+=======
+#include "MapReduceFramework.h"
+
+>>>>>>> 5c44d2ea538183d77dd48e8cb2e1293aa4a4a3b3
 using namespace std;
 
 class MapReduceSearch : MapReduceBase{
@@ -43,7 +48,7 @@ class MapReduceSearch : MapReduceBase{
         for (std::list<std::string>::const_iterator iterator = filesInCurrentFolder.begin(), end
                 = filesInCurrentFolder.end(); iterator != end; ++iterator) {
             if ((*iterator).find(patternString) != std::string::npos) {
-//                Emit2(*iterator , 1);
+                Emit2(new FolderNameKey(*iterator) , 1);
             }
         }
     }
@@ -60,7 +65,7 @@ class MapReduceSearch : MapReduceBase{
         }
     }
 
-    // check gregerg
+    // check
 
 
 };
