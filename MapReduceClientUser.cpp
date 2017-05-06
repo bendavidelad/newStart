@@ -1,6 +1,5 @@
 
 #include <iostream>
-#include "MapReduceClient.h"
 #include "MapReduceClientUser.h"
 
 
