@@ -1,6 +1,5 @@
 
 #include <iostream>
-#include "MapReduceClient.h"
 #include "MapReduceClientUser.h"
 
 
@@ -24,6 +23,8 @@ bool SubStringKey::operator<(const k1Base &other) const {
 SubStringKey::~SubStringKey() {
 
 }
+
+
 
 
 
@@ -100,3 +101,5 @@ FileNameReduce::~FileNameReduce() {
 FileNameReduce::FileNameReduce(std::string name) {
 
 }
+
+

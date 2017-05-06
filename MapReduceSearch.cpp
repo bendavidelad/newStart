@@ -6,7 +6,7 @@
 
 #include "MapReduceClient.h"
 #include "MapReduceFramework.h"
-#include "MapReduceClientUser.cpp"
+#include "MapReduceClientUser.h"
 using namespace std;
 
 class MapReduceSearch : MapReduceBase{
