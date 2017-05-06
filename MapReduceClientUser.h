@@ -46,11 +46,11 @@ private:
 
 };
 
-class oneClass: public v2Base{
+class OneClass: public v2Base{
 public:
-    oneClass();
+    OneClass();
 
-    ~oneClass();
+    ~OneClass();
 
     int getOne()const;
 
@@ -69,6 +69,20 @@ public:
     bool operator<(const k3Base &other) const;
 
 
+private:
+    std::string fileName;
+};
+
+class NumOfFiles: public  v3Base{
+public:
+    NumOfFiles(int num);
+
+    ~NumOfFiles();
+
+    int getNumOfFiles() const;
+
+private:
+    int numFiles;
 
 
 

@@ -45,14 +45,14 @@ std::string FolderNameKey::getFolderName()const{
  * oneClass class
  * #####################################################################################
  */
-int oneClass::getOne()const {
+int OneClass::getOne()const {
     return val;
 }
 
-oneClass::~oneClass() {
+OneClass::~OneClass() {
 }
 
-oneClass::oneClass() {
+OneClass::OneClass() {
 }
 
 
@@ -85,17 +85,38 @@ bool FileName::operator<(const k2Base &other) const {
  */
 
 bool FileNameReduce::operator<(const k3Base &other) const {
-    return false;
+
+    FileNameReduce otherIns = (const FileNameReduce&) other;
+    return this->fileName < otherIns.getFileName();
+
 }
 
 std::string FileNameReduce::getFileName() const{
-    return std::__cxx11::string();
+    return fileName;
 }
 
 FileNameReduce::~FileNameReduce() {
-
 }
 
-FileNameReduce::FileNameReduce(std::string name) {
+FileNameReduce::FileNameReduce(std::string name) :fileName(name){
+}
 
+
+/**
+ *
+ * NumOfFiles class
+ * #####################################################################################
+ */
+
+NumOfFiles::NumOfFiles(int num): numFiles(num)
+{
+}
+
+NumOfFiles::~NumOfFiles()
+{
+}
+
+int NumOfFiles::getNumOfFiles() const
+{
+    return numFiles;
 }

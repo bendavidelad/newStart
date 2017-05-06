@@ -39,18 +39,24 @@ class MapReduceSearch : MapReduceBase{
         }
 
         std::list<std::string> filesThatMatches;
+        OneClass* one = new OneClass();
 
         for (std::list<std::string>::const_iterator iterator = filesInCurrentFolder.begin(), end
                 = filesInCurrentFolder.end(); iterator != end; ++iterator) {
             if ((*iterator).find(patternString) != std::string::npos) {
-                Emit2(new FolderNameKey(*iterator) , 1);
+                FileName* currFile = new FileName(*iterator);
+                Emit2(currFile, one);
+                delete(currFile);
             }
         }
+        delete(one);
     }
 
     virtual void Reduce(const k2Base *const key, const V2_VEC &vals)
     {
-//        std::string folderName = key->name();
+        const FileName* fileName = dynamic_cast<const FileName*>(key);
+        std::string fileNameString = fileName->getFileName();
+
         int counter = 0;
 
         for (std::vector<v2Base *>::const_iterator iterator = vals.begin(), end
@@ -58,6 +64,12 @@ class MapReduceSearch : MapReduceBase{
         {
             counter++;
         }
+        NumOfFiles* numOfFiles = new NumOfFiles(counter);
+        FileNameReduce* fileNameReduce = new FileNameReduce(fileNameString);
+
+        Emit3(fileNameReduce , numOfFiles);
+        delete(numOfFiles);
+        delete(fileNameReduce);
     }
 
     // check
