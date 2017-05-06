@@ -12,7 +12,7 @@
 
 SubStringKey::SubStringKey(std::string name):subString(name){}
 
-std::string SubStringKey::getSubString(){
+std::string SubStringKey::getSubString()const{
     return subString;
 }
 bool SubStringKey::operator<(const k1Base &other) const {
@@ -36,7 +36,7 @@ SubStringKey::~SubStringKey() {
 //constructor
 FolderNameKey::FolderNameKey(std::string name): folderName(name) {}
 
-std::string FolderNameKey::getFolderName(){
+std::string FolderNameKey::getFolderName()const{
     return folderName;
 }
 
@@ -46,7 +46,7 @@ std::string FolderNameKey::getFolderName(){
  * oneClass class
  * #####################################################################################
  */
-int oneClass::getOne() {
+int oneClass::getOne()const {
     return val;
 }
 
@@ -69,7 +69,7 @@ FileName::FileName(std::string name) {
 FileName::~FileName(){
 
 }
-std::string FileName::getFileName() {
+std::string FileName::getFileName() const{
     return fileName;
 }
 
@@ -79,3 +79,24 @@ bool FileName::operator<(const k2Base &other) const {
     return this->fileName < otherIns.getFileName();
 }
 
+/**
+ *
+ * FileNameReduce class
+ * #####################################################################################
+ */
+
+bool FileNameReduce::operator<(const k3Base &other) const {
+    return false;
+}
+
+std::string FileNameReduce::getFileName() const{
+    return std::__cxx11::string();
+}
+
+FileNameReduce::~FileNameReduce() {
+
+}
+
+FileNameReduce::FileNameReduce(std::string name) {
+
+}

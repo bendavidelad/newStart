@@ -10,7 +10,7 @@ public:
 
     ~SubStringKey();
 
-    std::string getSubString();
+    std::string getSubString() const;
 
     bool operator<(const k1Base &other) const;
 
@@ -23,7 +23,7 @@ class FolderNameKey: public v1Base{
 public:
     FolderNameKey(std::string name);
 
-    std::string getFolderName();
+    std::string getFolderName()const;
 
 private:
     std::string folderName;
@@ -36,7 +36,7 @@ public:
 
     ~FileName();
 
-    std::string getFileName();
+    std::string getFileName()const;
 
     bool operator<(const k2Base &other) const;
 
@@ -52,13 +52,22 @@ public:
 
     ~oneClass();
 
-    int getOne();
+    int getOne()const;
 
 private:
     int val = 1;
 };
 
 class FileNameReduce: public k3Base{
+public:
+    FileNameReduce(std::string name);
+
+    ~FileNameReduce();
+
+    std::string getFileName()const;
+
+    bool operator<(const k3Base &other) const;
+
 
 
 
