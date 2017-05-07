@@ -9,7 +9,8 @@
 using namespace std;
 
 
-MapReduceSearch::MapReduceSearch(){}
+MapReduceSearch::MapReduceSearch(){
+}
 
 
 void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val){

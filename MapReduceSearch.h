@@ -21,7 +21,6 @@ public:
 
     virtual void Reduce(const k2Base *const key, const V2_VEC &vals);
 
-
 };
 
 #endif //OSTARGIL3_MAPREDUCESEARCH_H
