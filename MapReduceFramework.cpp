@@ -1,4 +1,3 @@
-//
-// Created by shaked571 on 5/7/17.
-//
 
+#include "MapReduceClient.h"
+#include "MapReduceFramework.h"

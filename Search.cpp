@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
         SubStringKey * subStringKey = new SubStringKey(key);
         FolderNameKey * folderNameKey = new FolderNameKey(argv[i]);
         IN_ITEM * pair  = new IN_ITEM (subStringKey, folderNameKey);
-        MapReduceBase mapReduceBase  = new MapReduceBase(const subStringKey,const folderNameKey);
+        MapReduceSearch mapReduceSearch  = new MapReduceSearch( subStringKey, folderNameKey);
         OUT_ITEMS_VEC res = RunMapReduceFramework()
 
 
