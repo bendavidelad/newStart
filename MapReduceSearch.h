@@ -12,6 +12,7 @@
 #include "MapReduceClientUser.h"
 
 class MapReduceSearch : MapReduceBase{
+public:
 
     MapReduceSearch();
 

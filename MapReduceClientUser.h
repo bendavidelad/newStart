@@ -3,7 +3,6 @@
 //
 #include <iostream>
 #include "MapReduceClient.h"
-
 class SubStringKey :public k1Base{
 public:
     SubStringKey(std::string name);
