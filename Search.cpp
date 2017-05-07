@@ -1,9 +1,7 @@
 #include <iostream>
 #include <assert.h>
-#include "MapReduceClient.h"
-#include "MapReduceFramework.h"
-#include "MapReduceClientUser.h"
-#include "MapReduceSearch.cpp" //todo make it
+
+#include "MapReduceSearch.h"
 
 using namespace std;
 //TODO dp sorting with a
@@ -23,8 +21,8 @@ int main(int argc, char* argv[])
         SubStringKey * subStringKey = new SubStringKey(key);
         FolderNameKey * folderNameKey = new FolderNameKey(argv[i]);
         IN_ITEM * pair  = new IN_ITEM (subStringKey, folderNameKey);
-        MapReduceSearch mapReduceSearch  = new MapReduceSearch( subStringKey, folderNameKey);
-        OUT_ITEMS_VEC res = RunMapReduceFramework()
+//        MapReduceSearch mapReduceSearch  = new MapReduceSearch( subStringKey, folderNameKey);
+//        OUT_ITEMS_VEC res = RunMapReduceFramework()
 
 
     }
