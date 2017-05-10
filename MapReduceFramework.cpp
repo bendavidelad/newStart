@@ -13,8 +13,6 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
         std::thread currentThread
     }
 
-
-
 }
 
 void Emit2 (k2Base*, v2Base*){}
