@@ -9,8 +9,9 @@
 using namespace std;
 unsigned long itemsVecPlace;
 
-MapReduceBase mapReduceGlobal;
+MapReduceBase* mapReduceGlobal;
 IN_ITEMS_VEC itemsVecGlobal;
+
 pthread_mutex_t mutexItemsVec = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexThreadCreation = PTHREAD_MUTEX_INITIALIZER;
 
@@ -43,16 +44,41 @@ IN_ITEMS_VEC* getChunkOfPairs(){
     }
 }
 
+void* execMap(void*)
+{
+    pthread_mutex_lock(&mutexThreadCreation);
+    //lock(x) ->here all the threads wait for the main thread to finish making all the threads
+    //unlock(x)-> and now after we past this phase ot mean no one locked x
+    pthread_mutex_unlock(&mutexThreadCreation);
+    while (true)
+    {
+        IN_ITEMS_VEC *currVec = getChunkOfPairs();
+        if (currVec == nullptr)
+        {
+            break;
+        }
+        for (int i = 0; i < currVec->size(); i++)
+        {
+            mapReduceGlobal->Map(((*currVec)[i]).first, ((*currVec)[i]).second); // might not
+            // work TODO
+        }
+    }
+    pthread_exit(NULL); //TODO might gonna need to check
+
+}
+
+
 
 
 OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     itemsVecPlace = itemsVec.size();
-    mapReduceGlobal = mapReduce;
+    mapReduceGlobal = &mapReduce;
     itemsVecGlobal = itemsVec;
     pthread_t threads[multiThreadLevel];
     int threadCreation;
     int i;
+
 
     //mutex lock(x)-> so we connent between thread id and the container
     pthread_mutex_lock(&mutexThreadCreation);
@@ -65,41 +91,12 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     }
     pthread_mutex_unlock(&mutexThreadCreation);
     //unlock mutex (x);
+
+
 }
 
 
-void* execMap(void*){
-    pthread_mutex_lock(&mutexThreadCreation);
-    //lock(x) ->here all the threads wait for the main thread to finish making all the threads
-    //unlock(x)-> and now after we past this phase ot mean no one locked x
-    pthread_mutex_unlock(&mutexThreadCreation);
-    while(true)
-    {
-        IN_ITEMS_VEC* currVec = getChunkOfPairs();
-        if (currVec)
 
-    }
-
-//
-//    }
-//
-//    IN_ITEMS_VEC* keysVector = (IN_ITEMS_VEC*)currVec;
-//
-//    for (int i = 0 ; i < keysVector->size() ; i++){
-//        mapReduceObject.Map(((*keysVector)[i]).first , ((*keysVector)[i]).second);
-//    }
-//    unsigned long currentVecPlace;
-//    if (itemsVecPlace > 0){
-//        pthread_mutex_lock(&mutexItemsVec);
-//        currentVecPlace = itemsVecPlace;
-//        itemsVecPlace -= 10;
-//        pthread_mutex_unlock(&mutexItemsVec);
-//    } else {
-//        pthread_exit(NULL);
-//    }
-//    unsigned long pairsToTake = max(itemsVecPlace , KEYS_PER_THREAD);
-
-}
 
 void Emit2 (k2Base*, v2Base*){
 
