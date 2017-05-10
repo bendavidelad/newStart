@@ -94,13 +94,14 @@ bool FileNameReduce::operator<(const k3Base &other) const {
 }
 
 std::string FileNameReduce::getFileName() const{
-    return fileName;
+    return this->fileName;
 }
 
 FileNameReduce::~FileNameReduce() {
 }
 
 FileNameReduce::FileNameReduce(std::string name) :fileName(name){
+    std::cout<< name;
 }
 
 
