@@ -13,7 +13,7 @@ MapReduceSearch::MapReduceSearch(){
 }
 
 
-void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val){
+void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) const{
 
 
         const SubStringKey* pattern = dynamic_cast<const SubStringKey*>(key);
@@ -54,7 +54,7 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val){
         delete(one);
     }
 
-void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals)
+void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const
     {
         const FileName* fileName = dynamic_cast<const FileName*>(key);
         std::string fileNameString = fileName->getFileName();

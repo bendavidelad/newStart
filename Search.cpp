@@ -28,11 +28,12 @@ int main(int argc, char* argv[])
         in_items_vec->push_back(*pair);
     }
 
-    OUT_ITEMS_VEC res = RunMapReduceFramework(mapReduceSearch,in_items_vec, NUM_OF_THREAD, YES_AUTO_DELETE);
+    OUT_ITEMS_VEC res = RunMapReduceFramework(*mapReduceSearch,*in_items_vec, NUM_OF_THREAD, YES_AUTO_DELETE);
     assert(sources.size() == numOfFiles);
     for (auto it = sources.begin() ; it != sources.end(); ++it ){
         cout <<*it <<endl;
     }
+
 
 //    string a = "aaaa";
 //    string n = "nnn";

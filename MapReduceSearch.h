@@ -11,15 +11,14 @@
 #include "MapReduceFramework.h"
 #include "MapReduceClientUser.h"
 
-class MapReduceSearch : MapReduceBase{
+class MapReduceSearch : public MapReduceBase{
 public:
 
     MapReduceSearch();
+    void Map(const k1Base *const key, const v1Base *const val)const ;
 
-    void Map(const k1Base *const key, const v1Base *const val);
 
-
-    virtual void Reduce(const k2Base *const key, const V2_VEC &vals);
+    void Reduce(const k2Base *const key, const V2_VEC &vals)const;
 
 };
 

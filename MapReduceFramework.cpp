@@ -10,7 +10,7 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
 
     for(int i = 0 ; i < multiThreadLevel ; i++){
-        std::thread currentThread
+//        std::thread currentThread
     }
 
 }
