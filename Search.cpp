@@ -76,12 +76,12 @@ int main(int argc, char* argv[])
 
         std::cout<<h.getFileName()<<endl;
     }
-//    std::sort (out_items_vecT,out_items_vecT->end());
-    cout<<"SSSS\n"<<endl;
-    for (int j = 0; j < out_items_vecT->size(); ++j) {
-        FileNameReduce& h = static_cast<FileNameReduce&>(*out_items_vecT[0][j].first);
-        std::cout<<h.getFileName()<<endl;
-    }
+//    std::sort (out_items_vecT->begin(),out_items_vecT->end());
+//    cout<<"SSSS\n"<<endl;
+//    for (int j = 0; j < out_items_vecT->size(); ++j) {
+//        FileNameReduce& h = static_cast<FileNameReduce&>(*out_items_vecT[0][j].first);
+//        std::cout<<h.getFileName()<<endl;
+//    }
 
 //    s->FileNameReduce(thhhh);
 //    for (auto it = out_items_vecT->begin() ; it != sources.end(); ++it ){
