@@ -2,12 +2,16 @@
 #include <thread>
 #include <iostream>
 #include <stdlib.h>
+#include <map>
+#include <list>
+
 #include "MapReduceFramework.h"
 
 #define KEYS_PER_THREAD 10
 
 using namespace std;
 unsigned long itemsVecPlace;
+typedef std::list<pair<k2Base*, v2Base*>> pairTypedef;
 
 MapReduceBase* mapReduceGlobal;
 IN_ITEMS_VEC itemsVecGlobal;
@@ -76,14 +80,19 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     mapReduceGlobal = &mapReduce;
     itemsVecGlobal = itemsVec;
     pthread_t threads[multiThreadLevel];
+    pthread_t s =threads[7];
     int threadCreation;
     int i;
+    std::map<pthread_t , pairTypedef> containerMap ;
 
 
     //mutex lock(x)-> so we connent between thread id and the container
     pthread_mutex_lock(&mutexThreadCreation);
     for(i = 0 ; i < multiThreadLevel ; i++){
         threadCreation = pthread_create(&threads[i] , NULL , execMap , NULL);
+        pairTypedef* currContainer = new pairTypedef();
+        std::pair<pthread_t , pairTypedef> currPair;
+        containerMap.insert(currPair);
         if (threadCreation){
             cout << "Error:unable to create thread," << threadCreation << endl;
             exit(-1);
