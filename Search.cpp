@@ -1,37 +1,42 @@
 #include <iostream>
 #include <assert.h>
 #include <algorithm>
-
+#include <stdlib.h>
 #include "MapReduceSearch.h"
-
 using namespace std;
 //TODO do sorting with a
 #define NUM_OF_THREAD 10
 #define YES_AUTO_DELETE true
-
+#define BAD_INPUT_MSG "Usage: <substring to search> <folders, separated by space>"
+#define ERROR_MSG "MapReduceFramework Failure: main() failed"
 
 int main(int argc, char* argv[])
 {
-    std::cout <<argc<<endl;
+    std::cout <<argc<<endl;//TODO need to delete
     if (argc <= 2){
-        //print error
+        cout << BAD_INPUT_MSG <<endl;
         return -1;
     }
     string key = argv[1];
-    cout<<"this is the key:  "<< key<<endl;
+    cout<<"this is the key:  "<< key<<endl;//TODO need to delete
     int numOfFiles = argc - 2;
-    vector<string> sources;//TODO need to delete
-    MapReduceSearch *mapReduceSearch= new MapReduceSearch();//TODO is it supposed to be like that??empty..
-    IN_ITEMS_VEC * in_items_vec = new IN_ITEMS_VEC();
+    IN_ITEMS_VEC *in_items_vec;
+    MapReduceSearch *mapReduceSearch;
+    try {
+        mapReduceSearch = new MapReduceSearch();
+        //TODO is it supposed to be like that??empty..
+        in_items_vec = new IN_ITEMS_VEC();
+    }catch(const std::bad_alloc&){
+        cerr<<ERROR_MSG<<endl;
+        exit(EXIT_FAILURE);
+    }
     for (int i = 2; i < argc; ++i){
-        sources.push_back(argv[i]);
         SubStringKey * subStringKey = new SubStringKey(key);
         FolderNameKey * folderNameKey = new FolderNameKey(argv[i]);
-        IN_ITEM * pair  = new IN_ITEM (subStringKey, folderNameKey);
-        in_items_vec->push_back(*pair);
+        IN_ITEM pair  = std::make_pair(subStringKey, folderNameKey);
+        in_items_vec->push_back(pair);
     }
     OUT_ITEMS_VEC res = RunMapReduceFramework(*mapReduceSearch,*in_items_vec, NUM_OF_THREAD, YES_AUTO_DELETE);
-    assert(sources.size() == numOfFiles);
    //printing the sorted result vector
     for (int j = 0; j < res.size(); ++j) {
         FileNameReduce& h = static_cast<FileNameReduce&>(*res[j].first);//TODO work on a int

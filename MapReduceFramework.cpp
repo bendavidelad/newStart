@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <map>
 #include <list>
-
+#include <libltdl/lt_system.h>
 #include "MapReduceFramework.h"
 
 #define KEYS_PER_THREAD 10
@@ -12,7 +12,7 @@
 using namespace std;
 unsigned long itemsVecPlace;
 typedef std::list<pair<k2Base*, v2Base*>> pairTypedef;
-
+static const std::string BAD_ALLOC_MSG = "ERROR- Bad Allocation";
 MapReduceBase* mapReduceGlobal;
 IN_ITEMS_VEC itemsVecGlobal;
 
@@ -41,9 +41,16 @@ IN_ITEMS_VEC* getChunkOfPairs(){
         }
         IN_ITEMS_VEC::const_iterator first = itemsVecGlobal.begin() + itemsVecPlace - chunkSize ;
         IN_ITEMS_VEC::const_iterator last =  itemsVecGlobal.end()+ itemsVecPlace;
-        vector<IN_ITEM>* newVec = new vector<IN_ITEM>(first, last);
+        vector<IN_ITEM>* newVec;
+        try{
+            newVec = new vector<IN_ITEM>(first, last);
+        }catch(const std::bad_alloc&){
+            cout<<BAD_ALLOC_MSG<<endl;
+            exit(EXIT_FAILURE);
+        }
         return newVec;
     } else {
+
         return nullptr;
     }
 }
@@ -73,7 +80,14 @@ void* execMap(void*)
 
 
 
-
+/**
+ *
+ * @param mapReduce
+ * @param itemsVec
+ * @param multiThreadLevel
+ * @param autoDeleteV2K2
+ * @return OUT_ITEMS_VEC if succecd ,Null otherwise
+ */
 OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     itemsVecPlace = itemsVec.size();
@@ -90,12 +104,16 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     pthread_mutex_lock(&mutexThreadCreation);
     for(i = 0 ; i < multiThreadLevel ; i++){
         threadCreation = pthread_create(&threads[i] , NULL , execMap , NULL);
-        pairTypedef* currContainer = new pairTypedef();
+        try {
+            pairTypedef *currContainer = new pairTypedef();
+        }catch (const std::bad_alloc&){
+            exit(EXIT_FAILURE);
+        }
         std::pair<pthread_t , pairTypedef> currPair;
         containerMap.insert(currPair);
         if (threadCreation){
             cout << "Error:unable to create thread," << threadCreation << endl;
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
     }
     pthread_mutex_unlock(&mutexThreadCreation);

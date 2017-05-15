@@ -1,10 +1,13 @@
 #include <iostream>
 #include <dirent.h>
-#include <stdlib.h>
 #include <libltdl/lt_system.h>
 #include <list>
 
 #include "MapReduceSearch.h"
+#define ERROR_MSG "MapReduceFramework Failure:"
+#define ERROR_MSG_END " failed"
+#define FUNC_NAME_MAP " Map"
+#define FUNC_NAME_REDUCE " Reduce"
 
 using namespace std;
 
@@ -41,12 +44,23 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
         }
 
         std::list<std::string> filesThatMatches;
-        OneClass* one = new OneClass();
-
+        OneClass* one;
+        try{
+            one = new OneClass();
+        }catch(const std::bad_alloc&) {
+            cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
+            exit(EXIT_FAILURE);
+        }
         for (std::list<std::string>::const_iterator iterator = filesInCurrentFolder.begin(), end
                 = filesInCurrentFolder.end(); iterator != end; ++iterator) {
             if ((*iterator).find(patternString) != std::string::npos) {
-                FileName* currFile = new FileName(*iterator);
+                FileName* currFile;
+                try{
+                    currFile = new FileName(*iterator);
+                }catch(const std::bad_alloc&) {
+                    cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
+                    exit(EXIT_FAILURE);
+                }
                 Emit2(currFile, one);
                 delete(currFile);
             }
@@ -66,9 +80,15 @@ void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const
         {
             counter++;
         }
-        NumOfFiles* numOfFiles = new NumOfFiles(counter);
-        FileNameReduce* fileNameReduce = new FileNameReduce(fileNameString);
-
+        NumOfFiles *numOfFiles;
+        FileNameReduce *fileNameReduce;
+        try {
+            numOfFiles = new NumOfFiles(counter);
+            fileNameReduce = new FileNameReduce(fileNameString);
+        }catch(const std::bad_alloc&) {
+            cerr << ERROR_MSG <<FUNC_NAME_REDUCE<< ERROR_MSG_END << endl;
+            exit(EXIT_FAILURE);
+        }
         Emit3(fileNameReduce , numOfFiles);
         delete(numOfFiles);
         delete(fileNameReduce);
