@@ -22,8 +22,8 @@ std::vector<pthread_t> threadsGlobal(0);
 std::map<pthread_t , listOfPairsK2BaseV2Base*> containerMapGlobal ;
 //########################################################################
 // Semaphores
-const int semaphoreShaffulInt = 0;
-sem_t semaphoreShafful;
+const int semaphoreShuffleInt = 0;
+sem_t semaphoreShuffle;
 const int WORK_BETWEEN_THE_PROCESSES = 0;
 
 //########################################################################
@@ -110,7 +110,7 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     int threadCreation;
     int i;
     //Initial the shuffle semaphore
-    sem_init(&semaphoreShafful,WORK_BETWEEN_THE_PROCESSES,semaphoreShaffulInt);
+    sem_init(&semaphoreShuffle,WORK_BETWEEN_THE_PROCESSES,semaphoreShuffleInt);
 
     //mutex lock(x)-> so we connent between thread id and the container
     pthread_mutex_lock(&mutexThreadCreation);
