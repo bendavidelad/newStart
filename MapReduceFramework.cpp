@@ -11,10 +11,12 @@
 
 using namespace std;
 unsigned long itemsVecPlace;
-typedef std::list<pair<k2Base*, v2Base*>> pairTypedef;
+typedef std::list<pair<k2Base*, v2Base*>>  listOfPairsK2BaseV2Base;
 static const std::string BAD_ALLOC_MSG = "ERROR- Bad Allocation";
 MapReduceBase* mapReduceGlobal;
 IN_ITEMS_VEC itemsVecGlobal;
+std::map<pthread_t , listOfPairsK2BaseV2Base*> globalContainerMap ;
+
 
 pthread_mutex_t mutexItemsVec = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexThreadCreation = PTHREAD_MUTEX_INITIALIZER;
@@ -94,23 +96,21 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     mapReduceGlobal = &mapReduce;
     itemsVecGlobal = itemsVec;
     pthread_t threads[multiThreadLevel];
-    pthread_t s =threads[7];
     int threadCreation;
     int i;
-    std::map<pthread_t , pairTypedef> containerMap ;
-
 
     //mutex lock(x)-> so we connent between thread id and the container
     pthread_mutex_lock(&mutexThreadCreation);
     for(i = 0 ; i < multiThreadLevel ; i++){
         threadCreation = pthread_create(&threads[i] , NULL , execMap , NULL);
+        listOfPairsK2BaseV2Base *currContainer;
         try {
-            pairTypedef *currContainer = new pairTypedef();
+            currContainer = new listOfPairsK2BaseV2Base();
         }catch (const std::bad_alloc&){
             exit(EXIT_FAILURE);
         }
-        std::pair<pthread_t , pairTypedef> currPair;
-        containerMap.insert(currPair);
+        std::pair<pthread_t , listOfPairsK2BaseV2Base*> currPair(threads[i] , currContainer);
+        globalContainerMap.insert(currPair);
         if (threadCreation){
             cout << "Error:unable to create thread," << threadCreation << endl;
             exit(EXIT_FAILURE);
@@ -124,9 +124,17 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
 
 
 
-
 void Emit2 (k2Base*, v2Base*){
+
+    pthread_t currThreadID  = pthread_self();
+    listOfPairsK2BaseV2Base *currContainer =  globalContainerMap.at(currThreadID);
+    std::pair<k2Base* , v2Base*> currPair(k2Base , v2Base);
+    currContainer->insert(k2Base , v2Base);
+
+
 
 }
 
-void Emit3 (k3Base*, v3Base*){}
+void Emit3 (k3Base*, v3Base*){
+
+}
