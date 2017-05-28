@@ -5,8 +5,11 @@
 #include <map>
 #include <list>
 #include <libltdl/lt_system.h>
+#include <unordered_map>
 #include "MapReduceFramework.h"
 #include "semaphore.h"
+#include "MapReduceClientUser.h"
+
 #define KEYS_PER_THREAD 10
 
 using namespace std;
@@ -18,8 +21,11 @@ static const std::string BAD_ALLOC_MSG = "ERROR- Bad Allocation";
 // Globals
 MapReduceBase* mapReduceGlobal;
 IN_ITEMS_VEC itemsVecGlobal;
+int multiThreadLevelGlobal;
 std::vector<pthread_t> threadsGlobal(0);
-std::map<pthread_t , listOfPairsK2BaseV2Base*> containerMapGlobal ;
+unordered_map<pthread_t , listOfPairsK2BaseV2Base*> containerMapGlobal;
+
+bool isFinal = false;
 //########################################################################
 // Semaphores
 const int semaphoreShuffleInt = 0;
@@ -30,6 +36,8 @@ const int WORK_BETWEEN_THE_PROCESSES = 0;
 //  Mutex
 pthread_mutex_t mutexItemsVec = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexThreadCreation = PTHREAD_MUTEX_INITIALIZER;
+unordered_map<pthread_t, listOfPairsK2BaseV2Base*> mutexMapGlobal;
+
 
 
 
@@ -66,7 +74,10 @@ IN_ITEMS_VEC* getChunkOfPairs(){
         return nullptr;
     }
 }
-
+/**
+ *
+ * @return
+ */
 void* execMap(void*)
 {
     pthread_mutex_lock(&mutexThreadCreation);
@@ -78,6 +89,8 @@ void* execMap(void*)
         IN_ITEMS_VEC *currVec = getChunkOfPairs();
         if (currVec == nullptr)
         {
+            isFinal = true;
+            sem_post(&semaphoreShuffle);
             break;
         }
         for (int i = 0; i < currVec->size(); i++)
@@ -87,6 +100,58 @@ void* execMap(void*)
         }
     }
     pthread_exit(NULL); //TODO might gonna need to check
+}
+
+/**
+ *.
+ * @return
+ */
+void* shuffle(void*) {
+    std::map<k2Base,std::list<v2Base>> shuffleMap;
+
+
+    while(!isFinal)
+    {
+        for (unsigned long i = 0; i < threadsGlobal.size(); i++)
+        {
+            if ((containerMapGlobal[threadsGlobal[i]]->size() > 0))
+            {
+
+                pair<k2Base*, v2Base*> currPair = containerMapGlobal.at(threadsGlobal[i])->back();
+
+                containerMapGlobal.at(threadsGlobal[i])->pop_back();
+                if (shuffleMap.count(*currPair.first))
+                {
+                    shuffleMap.at(*currPair.first).push_back(*currPair.second);
+                }
+                else
+                {
+                    std::list<v2Base> *listV2Base = new list<v2Base>();
+                    listV2Base->push_back(*currPair.second);
+                    std::pair<k2Base, std::list<v2Base>> newPair = make_pair(currPair.first, listV2Base);
+                    shuffleMap.insert(newPair);
+                }
+                sem_wait(&semaphoreShuffle);
+                break;
+            }
+        }
+    }
+    for(int j = 0; j< multiThreadLevelGlobal ;++j)
+    {
+        int rc;
+        void* status;
+        rc = pthread_join(threadsGlobal[j], &status);
+        if(rc)
+        {
+            cerr<<"error"<<rc<<endl;//TODO make a standard error
+        }
+    }
+    //all the treads
+    while ()
+
+
+
+
 
 }
 
@@ -104,15 +169,16 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
     itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     itemsVecPlace = itemsVec.size();
     mapReduceGlobal = &mapReduce;
+    multiThreadLevelGlobal = multiThreadLevel;
+    //a var that holds the list of k1,v1
     itemsVecGlobal = itemsVec;
-    pthread_t threads[multiThreadLevel];
     threadsGlobal.resize((unsigned long)multiThreadLevel);
     int threadCreation;
     int i;
     //Initial the shuffle semaphore
     sem_init(&semaphoreShuffle,WORK_BETWEEN_THE_PROCESSES,semaphoreShuffleInt);
 
-    //mutex lock(x)-> so we connent between thread id and the container
+    //mutex lock(x)-> so we connect between thread id and the container
     pthread_mutex_lock(&mutexThreadCreation);
     for(i = 0 ; i < multiThreadLevel ; i++){
         threadCreation = pthread_create(&threadsGlobal[i] , NULL , execMap , NULL);
@@ -122,15 +188,25 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
         }catch (const std::bad_alloc&){
             exit(EXIT_FAILURE);
         }
-        std::pair<pthread_t , listOfPairsK2BaseV2Base*> currPair(threadsGlobal[i] , currContainer);
+        std::pair<pthread_t, listOfPairsK2BaseV2Base*> currPair = make_pair(threadsGlobal[i],
+                                                                   currContainer);
         containerMapGlobal.insert(currPair);
+        pthread_mutex_t threadsMutex[] = PTHREAD_MUTEX_INITIALIZER;
+
         if (threadCreation){
             cout << "Error:unable to create thread," << threadCreation << endl;
             exit(EXIT_FAILURE);
         }
     }
-    pthread_mutex_unlock(&mutexThreadCreation);
     //unlock mutex (x);
+    pthread_mutex_unlock(&mutexThreadCreation);
+    //All the threads is currently running
+
+    //the shuffle will activate only after the first emit (which will post the semaphore)
+    sem_wait(&semaphoreShuffle);
+    threadCreation = pthread_create(&threadsGlobal[i] , NULL , shuffle , NULL);
+
+
 
 
 }
@@ -138,21 +214,13 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
 
 
 void Emit2 (k2Base* k2, v2Base* v2){
-
     pthread_t currThreadID  = pthread_self();
     listOfPairsK2BaseV2Base *currContainer =  containerMapGlobal.at(currThreadID);
-    std::pair<k2Base* , v2Base*> currPair(k2 , v2);
+    std::pair<k2Base* , v2Base*> currPair = make_pair(k2 , v2);
     currContainer->push_back(currPair);
-
-
+    sem_post(&semaphoreShuffle);
 }
 
 void Emit3 (k3Base*, v3Base*){
 
-}
-
-void shuffle(){
-    for (int i = 0 ; i < threadsGlobal.size() ; i++){
-//        if ( )
-    }
 }
