@@ -1,4 +1,3 @@
-
 #include <thread>
 #include <iostream>
 #include <stdlib.h>
@@ -21,20 +20,20 @@ typedef std::list<pair<k2Base*, v2Base*>>  listOfPairsK2BaseV2Base;
 typedef std::list<pair<k3Base*, v3Base*>>  listOfPairsK3BaseV3Base;
 typedef std::pair<k2Base*, V2_VEC> MID_ITEM;
 typedef std::vector<MID_ITEM> MID_ITEMS_VEC;
-
 static const std::string BAD_ALLOC_MSG = "ERROR- Bad Allocation";
 
 //########################################################################
 // Globals
 MapReduceBase* mapReduceGlobal;
+IN_ITEMS_VEC itemsVecGlobal;
+int multiThreadLevelGlobal;
 std::vector<pthread_t> threadsGlobal(0);
 unordered_map<pthread_t , listOfPairsK2BaseV2Base*> containerMapGlobal;
-//unordered_map<pthread_t , listOfPairsK2BaseV2Base*> containerReduceGlobal;
-
-IN_ITEMS_VEC itemsVecGlobal;
-MID_ITEMS_VEC shuffleMapGlobal;
+std::map<k2Base,std::vector<v2Base>> shuffleMapGlobal;
 bool isJoin = false;
-int multiThreadLevelGlobal;
+
+
+auto globalFirstIt = shuffleMapGlobal.begin();
 
 //########################################################################
 // Semaphores
@@ -91,28 +90,38 @@ IN_ITEMS_VEC* getChunkOfPairs(){
 MID_ITEMS_VEC* getChunkOfPairsReduce()
 {
     itemsVecPlace = shuffleMapGlobal.size();
-    unsigned long chunkSize = KEYS_PER_THREAD;
     if (itemsVecPlace > 0)
     {
-        // Critical Section!!!
-        pthread_mutex_lock(&mutexItemsVec);
-        unsigned long start = itemsVecPlace;
-
-        MID_ITEMS_VEC::const_iterator first = shuffleMapGlobal.begin() + itemsVecPlace - chunkSize;
-        MID_ITEMS_VEC::const_iterator last =  shuffleMapGlobal.end()+ itemsVecPlace;
         vector<MID_ITEM>* newVec;
         try{
-            newVec = new vector<MID_ITEM>(first, last);
+            newVec = new vector<MID_ITEM>();
         }catch(const std::bad_alloc&){
             cout<<BAD_ALLOC_MSG<<endl;
             exit(EXIT_FAILURE);
         }
+        // Critical Section!!!
+        pthread_mutex_lock(&mutexItemsVec);
+        unsigned long start = itemsVecPlace;
+
+        auto end = shuffleMapGlobal.end();
+        int i = KEYS_PER_THREAD;
+        for (globalFirstIt; globalFirstIt != end; globalFirstIt++)
+        {
+            newVec->push_back(*globalFirstIt);
+            if(!i)
+            {
+                break;
+            }
+            i--;
+        }
         return newVec;
-    } else
+    }
+    else
     {
         return nullptr;
     }
 }
+
 
 
 /**
@@ -187,9 +196,7 @@ void* shuffle(void*)
                 //locking the critical code section-> the mutual resource
                 pthread_mutex_lock(&mutexMapGlobal[currThreadID]);
                 containerMapGlobal.at(threadsGlobal[i])->pop_back();
-
-
-                if (shuffleMapGlobal.find(*currPair.first))
+                if (shuffleMapGlobal.count(*currPair.first))
                 {
                     shuffleMapGlobal.at(*currPair.first).push_back(*currPair.second);
                 }
@@ -328,7 +335,7 @@ void creatingThreadsReduce()
  * @return OUT_ITEMS_VEC if succecd ,Null otherwise
  */
 OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
-    itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
+itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     itemsVecPlace = itemsVec.size();
     mapReduceGlobal = &mapReduce;
     multiThreadLevelGlobal = multiThreadLevel;
@@ -364,6 +371,7 @@ OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
 
     pthread_mutex_lock(&mutexThreadCreation);
     creatingThreadsReduce();
+    auto first = shuffleMapGlobal.begin();
     pthread_mutex_unlock(&mutexThreadCreation);
 
 
