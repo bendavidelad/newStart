@@ -9,7 +9,12 @@ using namespace std;
 #define YES_AUTO_DELETE true
 #define BAD_INPUT_MSG "Usage: <substring to search> <folders, separated by space>"
 #define ERROR_MSG "MapReduceFramework Failure: main() failed"
-
+#include <iostream>
+#ifndef NOLOGGING
+#define LOG(msg)
+#else
+#define LOG(msg) std::cout << "[LOG] (" __FILE__ ":" << __LINE__ << ") from " << __func__ << "()\n    " << msg << "\n";
+#endif
 int main(int argc, char* argv[])
 {
     std::cout <<argc<<endl;//TODO need to delete
@@ -38,7 +43,8 @@ int main(int argc, char* argv[])
     }
     OUT_ITEMS_VEC res = RunMapReduceFramework(*mapReduceSearch,*in_items_vec, NUM_OF_THREAD, YES_AUTO_DELETE);
    //printing the sorted result vector
-    for (int j = 0; j < res.size(); ++j) {
+    for (int j = 0; j < res.size(); ++j)
+    {
         FileNameReduce& h = static_cast<FileNameReduce&>(*res[j].first);//TODO work on a int
         std::cout<<h.getFileName()<<endl;
     }

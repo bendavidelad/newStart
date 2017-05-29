@@ -64,7 +64,7 @@ OneClass::OneClass() {
  * FileName class
  * #####################################################################################
  */
-FileName::FileName(std::string name) {
+FileName::FileName(std::string name):fileName(name) {
 
 }
 FileName::~FileName(){
