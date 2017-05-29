@@ -94,16 +94,9 @@ MID_ITEMS_VEC* getChunkOfPairsReduce()
         // Critical Section!!!
         pthread_mutex_lock(&mutexItemsVec);
         unsigned long start = itemsVecPlace;
-        itemsVecPlace -= KEYS_PER_THREAD;
-        pthread_mutex_unlock(&mutexItemsVec);
-        // End of Critical Section!!!
-        // check if there's less threads than KEYS_PER_THREAD
-        if (start < KEYS_PER_THREAD){
-            chunkSize = start;
-        }
-
-        std::map<k2Base,std::list<v2Base>>::const_iterator first = shuffleMapGlobal.begin() + itemsVecPlace - chunkSize ;
-        std::map<k2Base,std::list<v2Base>>::const_iterator last =  shuffleMapGlobal.end()+ itemsVecPlace;
+        
+        auto first = shuffleMapGlobal.begin() + itemsVecPlace - chunkSize ;
+        auto last =  shuffleMapGlobal.end()+ itemsVecPlace;
         vector<IN_ITEM>* newVec;
         try{
             newVec = new vector<IN_ITEM>(first, last);
