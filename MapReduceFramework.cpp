@@ -27,12 +27,15 @@ static const std::string BAD_ALLOC_MSG = "ERROR- Bad Allocation";
 //########################################################################
 // Globals
 MapReduceBase* mapReduceGlobal;
-IN_ITEMS_VEC itemsVecGlobal;
-int multiThreadLevelGlobal;
 std::vector<pthread_t> threadsGlobal(0);
 unordered_map<pthread_t , listOfPairsK2BaseV2Base*> containerMapGlobal;
-std::map<k2Base,std::list<v2Base>> shuffleMapGlobal;
+//unordered_map<pthread_t , listOfPairsK2BaseV2Base*> containerReduceGlobal;
+
+IN_ITEMS_VEC itemsVecGlobal;
+MID_ITEMS_VEC shuffleMapGlobal;
 bool isJoin = false;
+int multiThreadLevelGlobal;
+
 //########################################################################
 // Semaphores
 const int semaphoreShuffleInt = 0;
@@ -94,12 +97,12 @@ MID_ITEMS_VEC* getChunkOfPairsReduce()
         // Critical Section!!!
         pthread_mutex_lock(&mutexItemsVec);
         unsigned long start = itemsVecPlace;
-        
-        auto first = shuffleMapGlobal.begin() + itemsVecPlace - chunkSize ;
-        auto last =  shuffleMapGlobal.end()+ itemsVecPlace;
-        vector<IN_ITEM>* newVec;
+
+        MID_ITEMS_VEC::const_iterator first = shuffleMapGlobal.begin() + itemsVecPlace - chunkSize;
+        MID_ITEMS_VEC::const_iterator last =  shuffleMapGlobal.end()+ itemsVecPlace;
+        vector<MID_ITEM>* newVec;
         try{
-            newVec = new vector<IN_ITEM>(first, last);
+            newVec = new vector<MID_ITEM>(first, last);
         }catch(const std::bad_alloc&){
             cout<<BAD_ALLOC_MSG<<endl;
             exit(EXIT_FAILURE);
@@ -184,7 +187,9 @@ void* shuffle(void*)
                 //locking the critical code section-> the mutual resource
                 pthread_mutex_lock(&mutexMapGlobal[currThreadID]);
                 containerMapGlobal.at(threadsGlobal[i])->pop_back();
-                if (shuffleMapGlobal.count(*currPair.first))
+
+
+                if (shuffleMapGlobal.find(*currPair.first))
                 {
                     shuffleMapGlobal.at(*currPair.first).push_back(*currPair.second);
                 }
