@@ -19,79 +19,81 @@ MapReduceSearch::MapReduceSearch(){
 void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) const{
 
 
-        const SubStringKey* pattern = dynamic_cast<const SubStringKey*>(key);
 
-        const FolderNameKey* folderName = dynamic_cast<const FolderNameKey*>(val);
+    cout << "HEREERERE" << endl;
+    const SubStringKey* pattern = (const SubStringKey*)(key);
+    cout << "tgregreg" << endl;
 
-        std::string patternString = pattern->getSubString();
-        std::string folderNameString = folderName->getFolderName();
+    const FolderNameKey* folderName =(const FolderNameKey*)(val);
 
-        list<std::string> filesInCurrentFolder;
+    std::string patternString = pattern->getSubString();
+    std::string folderNameString = folderName->getFolderName();
 
-        DIR *dir;
-        struct dirent *ent;
-        if ((dir = opendir (folderNameString.c_str())) != NULL) {
-            /* print all the files and directories within directory */
-            while ((ent = readdir (dir)) != NULL) {
-                filesInCurrentFolder.push_back(ent->d_name);
-                printf ("%s\n", ent->d_name);
-            }
-            closedir (dir);
-        } else {
-            /* could not open directory */
-            perror ("");
-            return;
+    list<std::string> filesInCurrentFolder;
+
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir (folderNameString.c_str())) != NULL) {
+        /* print all the files and directories within directory */
+        while ((ent = readdir (dir)) != NULL) {
+            filesInCurrentFolder.push_back(ent->d_name);
+            printf ("%s\n", ent->d_name);
         }
-
-        std::list<std::string> filesThatMatches;
-        OneClass* one;
-        try{
-            one = new OneClass();
-        }catch(const std::bad_alloc&) {
-            cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
-            exit(EXIT_FAILURE);
-        }
-        for (std::list<std::string>::const_iterator iterator = filesInCurrentFolder.begin(), end
-                = filesInCurrentFolder.end(); iterator != end; ++iterator) {
-            if ((*iterator).find(patternString) != std::string::npos) {
-                FileName* currFile;
-                try{
-                    currFile = new FileName(*iterator);
-                }catch(const std::bad_alloc&) {
-                    cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
-                    exit(EXIT_FAILURE);
-                }
-                Emit2(currFile, one);
-                delete(currFile);
-            }
-        }
-        delete(one);
+        closedir (dir);
+    } else {
+        /* could not open directory */
+        perror ("");
+        return;
     }
+
+
+    std::list<std::string> filesThatMatches;
+    OneClass* one;
+    try{
+        one = new OneClass();
+    }catch(const std::bad_alloc&) {
+        cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
+        exit(EXIT_FAILURE);
+    }
+    for (std::list<std::string>::const_iterator iterator = filesInCurrentFolder.begin(), end
+            = filesInCurrentFolder.end(); iterator != end; ++iterator) {
+        if ((*iterator).find(patternString) != std::string::npos) {
+            FileName* currFile;
+            try{
+                currFile = new FileName(*iterator);
+            }catch(const std::bad_alloc&) {
+                cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
+                exit(EXIT_FAILURE);
+            }
+//                Emit2(currFile, one);
+            delete(currFile);
+        }
+    }
+    delete(one);
+}
 
 void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const
+{
+    const FileName* fileName = dynamic_cast<const FileName*>(key);
+    std::string fileNameString = fileName->getFileName();
+
+    int counter = 0;
+
+    for (std::vector<v2Base *>::const_iterator iterator = vals.begin(), end
+            = vals.end(); iterator != end; ++iterator)
     {
-        const FileName* fileName = dynamic_cast<const FileName*>(key);
-        std::string fileNameString = fileName->getFileName();
-
-        int counter = 0;
-
-        for (std::vector<v2Base *>::const_iterator iterator = vals.begin(), end
-                = vals.end(); iterator != end; ++iterator)
-        {
-            counter++;
-        }
-        NumOfFiles *numOfFiles;
-        FileNameReduce *fileNameReduce;
-        try {
-            numOfFiles = new NumOfFiles(counter);
-            fileNameReduce = new FileNameReduce(fileNameString);
-        }catch(const std::bad_alloc&) {
-            cerr << ERROR_MSG <<FUNC_NAME_REDUCE<< ERROR_MSG_END << endl;
-            exit(EXIT_FAILURE);
-        }
-        Emit3(fileNameReduce , numOfFiles);
-        delete(numOfFiles);
-        delete(fileNameReduce);
+        counter++;
     }
-
-
+    NumOfFiles *numOfFiles;
+    FileNameReduce *fileNameReduce;
+    try {
+        numOfFiles = new NumOfFiles(counter);
+        fileNameReduce = new FileNameReduce(fileNameString);
+    }catch(const std::bad_alloc&) {
+        cerr << ERROR_MSG <<FUNC_NAME_REDUCE<< ERROR_MSG_END << endl;
+        exit(EXIT_FAILURE);
+    }
+    Emit3(fileNameReduce , numOfFiles);
+    delete(numOfFiles);
+    delete(fileNameReduce);
+}

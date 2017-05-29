@@ -1,61 +1,23 @@
-/**
- * Semaphore example, written in C++ May 4, 2014
- * Compiled on OSX 10.9, using:
- * g++ -std=c++11 semaphore.cpp
- **/
-
 #include <iostream>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
+#include "MapReduceClient.h"
+#include "MapReduceSearch.h"
 
-std::mutex mtx;             // mutex for critical section
-std::condition_variable cv; // condition variable for critical section
-bool ready = false;         // Tell threads to run
-int current = 0;            // current count
+using namespace std;
 
-/* Prints the thread id / max number of threads */
-void print_num(int num, int max) {
+int main(){
 
-    std::unique_lock<std::mutex> lck(mtx);
-    while(num != current || !ready){ cv.wait(lck); }
-    current++;
-    std::cout << "Thread: ";
-    std::cout << num + 1 << " / " << max;
-    std::cout << " current count is: ";
-    std::cout << current << std::endl;
+    MapReduceBase* map = new MapReduceSearch();
+    const k1Base* k1 = new SubStringKey("25");
+    const v1Base* v1 = new FolderNameKey("/cs/usr/bendavidelad/testEx3/grids");
+//    map->Map(k1 ,v1);
 
-    /* Notify next threads to check if it is their turn */
-    cv.notify_all();
-}
+    const k2Base* k2 = new FileName("/cs/usr/bendavidelad/newStart/grids/grid25");
+    v2Base* v2 = new OneClass();
+    V2_VEC v2_vec;
+//    pair<k2Base* , v2Base*> newPair(k2,v2);
+    v2_vec.push_back(v2);
+    v2_vec.push_back(v2);
 
-/* Changes ready to true, and begins the threads printing */
-void run(){
-    std::unique_lock<std::mutex> lck(mtx);
-    ready = true;
-    cv.notify_all();
-}
+//    map->Reduce(k2,v2_vec);
 
-int main (){
-
-    int threadnum = 15;
-    std::thread threads[15];
-
-    /* spawn threadnum threads */
-    for (int id = 0; id < threadnum; id++)
-        threads[id] = std::thread(print_num, id, threadnum);
-
-    std::cout << "\nRunning " << threadnum;
-    std::cout << " in parallel: \n" << std::endl;
-
-    run(); // Allows threads to run
-
-    /* Merge all threads to the main thread */
-    for(int id = 0; id < threadnum; id++)
-        threads[id].join();
-
-    std::cout << "\nCompleted semaphore example!\n";
-    std::cout << std::endl;
-
-    return 0;
 }

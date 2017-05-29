@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include "MapReduceClientUser.h"
 
@@ -18,7 +17,7 @@ bool SubStringKey::operator<(const k1Base &other) const {
     SubStringKey otherIns = (const SubStringKey&) other;
 
     return this->subString < otherIns.getSubString();
-    }
+}
 
 SubStringKey::~SubStringKey() {
 
@@ -64,8 +63,8 @@ OneClass::OneClass() {
  * FileName class
  * #####################################################################################
  */
-FileName::FileName(std::string name):fileName(name) {
-
+FileName::FileName(std::string name) {
+    fileName = name;
 }
 FileName::~FileName(){
 
@@ -101,7 +100,6 @@ FileNameReduce::~FileNameReduce() {
 }
 
 FileNameReduce::FileNameReduce(std::string name) :fileName(name){
-    std::cout<< name;
 }
 
 
@@ -123,5 +121,3 @@ int NumOfFiles::getNumOfFiles() const
 {
     return numFiles;
 }
-
-
