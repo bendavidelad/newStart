@@ -5,7 +5,7 @@
 #include "MapReduceSearch.h"
 using namespace std;
 //TODO do sorting with a
-#define NUM_OF_THREAD 10
+#define NUM_OF_THREAD 1
 #define YES_AUTO_DELETE true
 #define BAD_INPUT_MSG "Usage: <substring to search> <folders, separated by space>"
 #define ERROR_MSG "MapReduceFramework Failure: main() failed"
@@ -32,12 +32,13 @@ int main(int argc, char* argv[])
     }
     for (int i = 2; i < argc; ++i){
         SubStringKey * subStringKey = new SubStringKey(key);
+        std::cerr << " key: "<<subStringKey<<"\n"<<std::fflush;
         FolderNameKey * folderNameKey = new FolderNameKey(argv[i]);
         IN_ITEM pair  = std::make_pair(subStringKey, folderNameKey);
         in_items_vec->push_back(pair);
     }
     OUT_ITEMS_VEC res = RunMapReduceFramework(*mapReduceSearch,*in_items_vec, NUM_OF_THREAD, YES_AUTO_DELETE);
-   //printing the sorted result vector
+    //printing the sorted result vector
     for (int j = 0; j < res.size(); ++j) {
         FileNameReduce& h = static_cast<FileNameReduce&>(*res[j].first);//TODO work on a int
         std::cout<<h.getFileName()<<endl;
