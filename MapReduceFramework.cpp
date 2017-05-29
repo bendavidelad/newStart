@@ -16,8 +16,8 @@
 // Typedefs
 using namespace std;
 unsigned long itemsVecPlace;
-typedef std::list<pair<k2Base*, v2Base*>>  listOfPairsK2BaseV2Base;
-typedef std::list<pair<k3Base*, v3Base*>>  listOfPairsK3BaseV3Base;
+typedef std::vector<pair<k2Base*, v2Base*>>  vectorOfPairsK2BaseV2Base;
+typedef std::vector<pair<k3Base*, v3Base*>>  vectorOfPairsK3BaseV3Base;
 typedef std::pair<k2Base*, V2_VEC> MID_ITEM;
 typedef std::vector<MID_ITEM> MID_ITEMS_VEC;
 static const std::string BAD_ALLOC_MSG = "ERROR- Bad Allocation";
@@ -28,10 +28,10 @@ MapReduceBase* mapReduceGlobal;
 IN_ITEMS_VEC itemsVecGlobal;
 int multiThreadLevelGlobal;
 std::vector<pthread_t> threadsGlobal(0);
-unordered_map<pthread_t , listOfPairsK2BaseV2Base*> containerMapGlobal;
-unordered_map<pthread_t , listOfPairsK3BaseV3Base*> containerReduceGlobal;
+unordered_map<pthread_t , vectorOfPairsK2BaseV2Base*> containerMapGlobal;
+unordered_map<pthread_t , vectorOfPairsK3BaseV3Base*> containerReduceGlobal;
 
-std::map<k2Base,std::vector<v2Base>> shuffleMapGlobal;
+std::map<k2Base*, V2_VEC> shuffleMapGlobal;
 bool isJoin = false;
 
 
@@ -94,7 +94,7 @@ MID_ITEMS_VEC* getChunkOfPairsReduce()
     itemsVecPlace = shuffleMapGlobal.size();
     if (itemsVecPlace > 0)
     {
-        vector<MID_ITEM>* newVec;
+        MID_ITEMS_VEC* newVec;
         try{
             newVec = new vector<MID_ITEM>();
         }catch(const std::bad_alloc&){
@@ -198,15 +198,15 @@ void* shuffle(void*)
                 //locking the critical code section-> the mutual resource
                 pthread_mutex_lock(&mutexMapGlobal[currThreadID]);
                 containerMapGlobal.at(threadsGlobal[i])->pop_back();
-                if (shuffleMapGlobal.count(*currPair.first))
+                if (shuffleMapGlobal.count(currPair.first))
                 {
-                    shuffleMapGlobal.at(*currPair.first).push_back(*currPair.second);
+                    shuffleMapGlobal.at(currPair.first).push_back(currPair.second);
                 }
                 else
                 {
-                    std::list<v2Base> *listV2Base = new list<v2Base>();
-                    listV2Base->push_back(*currPair.second);
-                    std::pair<k2Base, std::list<v2Base>> newPair = make_pair(currPair.first, listV2Base);
+                    std::vector<v2Base*> vecV2Base;
+                    vecV2Base.push_back(currPair.second);
+                    MID_ITEM newPair = make_pair(currPair.first, vecV2Base);
                     shuffleMapGlobal.insert(newPair);
                 }
                 //unlock the mutex
@@ -225,15 +225,16 @@ void* shuffle(void*)
             {
                 pair<k2Base*, v2Base*> currPair = containerMapGlobal.at(threadsGlobal[k])->back();
                 containerMapGlobal.at(threadsGlobal[k])->pop_back();
-                if (shuffleMapGlobal.count(*currPair.first))
+                if (shuffleMapGlobal.count(currPair.first))
                 {
-                    shuffleMapGlobal.at(*currPair.first).push_back(*currPair.second);
+                    shuffleMapGlobal.at(currPair.first).push_back(currPair.second);
                 }
                 else
                 {
-                    std::list<v2Base> *listV2Base = new list<v2Base>();
-                    listV2Base->push_back(*currPair.second);
-                    std::pair<k2Base, std::list<v2Base>> newPair = make_pair(currPair.first, listV2Base);
+                    std::vector<v2Base*> vectorV2Base;
+                    vectorV2Base.push_back(currPair.second);
+                    std::pair<k2Base*, std::vector<v2Base*>> newPair = make_pair(currPair.first,
+                                                                                vectorV2Base);
                     shuffleMapGlobal.insert(newPair);
                 }
                 sem_wait(&semaphoreShuffle);
@@ -253,13 +254,13 @@ void creatingThreadsShuffle()
     for(i = 0 ; i < multiThreadLevelGlobal ; i++)
     {
         threadCreation = pthread_create(&threadsGlobal[i] , NULL , execMap , NULL);
-        listOfPairsK2BaseV2Base *currContainer;
+        vectorOfPairsK2BaseV2Base *currContainer;
         try {
-            currContainer = new listOfPairsK2BaseV2Base();
+            currContainer = new vectorOfPairsK2BaseV2Base();
         }catch (const std::bad_alloc&){
             exit(EXIT_FAILURE);
         }
-        std::pair<pthread_t, listOfPairsK2BaseV2Base*> pairToThreadContainer = make_pair(threadsGlobal[i],
+        std::pair<pthread_t, vectorOfPairsK2BaseV2Base*> pairToThreadContainer = make_pair(threadsGlobal[i],
                                                                                          currContainer);
         containerMapGlobal.insert(pairToThreadContainer);
         //init the mutex pf the thread
@@ -312,13 +313,13 @@ void creatingThreadsReduce()
     for(i = 0 ; i < multiThreadLevelGlobal ; i++)
     {
         threadCreation = pthread_create(&threadsGlobal[i] , NULL , execReduce , NULL);
-        listOfPairsK3BaseV3Base *currContainer;
+        vectorOfPairsK3BaseV3Base *currContainer;
         try {
-            currContainer = new listOfPairsK3BaseV3Base();
+            currContainer = new vectorOfPairsK3BaseV3Base();
         }catch (const std::bad_alloc&){
             exit(EXIT_FAILURE);//TODO format system call
         }
-        std::pair<pthread_t, listOfPairsK3BaseV3Base*> pairToThreadContainer = make_pair
+        std::pair<pthread_t, vectorOfPairsK3BaseV3Base*> pairToThreadContainer = make_pair
                 (threadsGlobal[i], currContainer);
         containerReduceGlobal.insert(pairToThreadContainer);
         if (threadCreation)
@@ -341,7 +342,7 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     itemsVecPlace = itemsVec.size();
     mapReduceGlobal = &mapReduce;
     multiThreadLevelGlobal = multiThreadLevel;
-    //a var that holds the list of k1,v1
+    //a var that holds the vector of k1,v1
     itemsVecGlobal = itemsVec;
     threadsGlobal.resize((unsigned long)multiThreadLevel);
     //Initial the shuffle semaphore
@@ -376,7 +377,7 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     auto first = shuffleMapGlobal.begin();
     pthread_mutex_unlock(&mutexThreadCreation);
     joinThreads();
-    listOfPairsK3BaseV3Base outContainer;
+    vectorOfPairsK3BaseV3Base outContainer;
     for (int i = 0 ; i < containerReduceGlobal.size() ; i++){
         outContainer.insert(outContainer.end(), (*containerReduceGlobal[threadsGlobal[i]]).begin(),
                             (*containerReduceGlobal[threadsGlobal[i]]).end());
@@ -390,7 +391,7 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
 void Emit2 (k2Base* k2, v2Base* v2){
 
     pthread_t currThreadID  = pthread_self();
-    listOfPairsK2BaseV2Base *currContainer =  containerMapGlobal.at(currThreadID);
+    vectorOfPairsK2BaseV2Base *currContainer =  containerMapGlobal.at(currThreadID);
     std::pair<k2Base* , v2Base*> currPair = make_pair(k2 , v2);
     //locking the critical code section-> the mutual resource
     pthread_mutex_lock(&mutexMapGlobal[currThreadID]);
@@ -403,7 +404,7 @@ void Emit2 (k2Base* k2, v2Base* v2){
 void Emit3 (k3Base* k3, v3Base* v3){
 
     pthread_t currThreadID  = pthread_self();
-    listOfPairsK3BaseV3Base *currContainer =  containerReduceGlobal.at(currThreadID);
+    vectorOfPairsK3BaseV3Base *currContainer =  containerReduceGlobal.at(currThreadID);
     std::pair<k3Base* , v3Base*> currPair = make_pair(k3 , v3);
     currContainer->push_back(currPair);
 }

@@ -42,6 +42,24 @@ int main(int argc, char* argv[])
         FileNameReduce& h = static_cast<FileNameReduce&>(*res[j].first);//TODO work on a int
         std::cout<<h.getFileName()<<endl;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**
     typedef std::pair<k3Base*, v3Base*> OUT_ITEM;
     typedef std::vector<OUT_ITEM> OUT_ITEMS_VEC;
