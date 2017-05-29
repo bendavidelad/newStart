@@ -378,11 +378,11 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     joinThreads();
     listOfPairsK3BaseV3Base outContainer;
     for (int i = 0 ; i < containerReduceGlobal.size() ; i++){
-        outContainer.insert(outContainer.end(), containerReduceGlobal[threadsGlobal[i]].begin(),
-                            containerReduceGlobal[threadsGlobal[i]].end());
+        outContainer.insert(outContainer.end(), (*containerReduceGlobal[threadsGlobal[i]]).begin(),
+                            (*containerReduceGlobal[threadsGlobal[i]]).end());
     }
-    std::vector<T> v{ std::begin(l), std::end(l) };
-
+    OUT_ITEMS_VEC outputVec{ std::begin(outContainer), std::end(outContainer) };
+    return outputVec;
 }
 
 
