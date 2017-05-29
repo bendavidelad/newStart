@@ -29,6 +29,8 @@ IN_ITEMS_VEC itemsVecGlobal;
 int multiThreadLevelGlobal;
 std::vector<pthread_t> threadsGlobal(0);
 unordered_map<pthread_t , listOfPairsK2BaseV2Base*> containerMapGlobal;
+unordered_map<pthread_t , listOfPairsK3BaseV3Base*> containerReduceGlobal;
+
 std::map<k2Base,std::vector<v2Base>> shuffleMapGlobal;
 bool isJoin = false;
 
@@ -318,7 +320,7 @@ void creatingThreadsReduce()
         }
         std::pair<pthread_t, listOfPairsK3BaseV3Base*> pairToThreadContainer = make_pair
                 (threadsGlobal[i], currContainer);
-        containerMapGlobal.insert(pairToThreadContainer);
+        containerReduceGlobal.insert(pairToThreadContainer);
         if (threadCreation)
         {
             cout << "Error:unable to create thread," << threadCreation << endl;
@@ -373,10 +375,13 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     creatingThreadsReduce();
     auto first = shuffleMapGlobal.begin();
     pthread_mutex_unlock(&mutexThreadCreation);
-
-
-
-
+    joinThreads();
+    listOfPairsK3BaseV3Base outContainer;
+    for (int i = 0 ; i < containerReduceGlobal.size() ; i++){
+        outContainer.insert(outContainer.end(), containerReduceGlobal[threadsGlobal[i]].begin(),
+                            containerReduceGlobal[threadsGlobal[i]].end());
+    }
+    std::vector<T> v{ std::begin(l), std::end(l) };
 
 }
 
@@ -395,7 +400,10 @@ void Emit2 (k2Base* k2, v2Base* v2){
     sem_post(&semaphoreShuffle);
 }
 
-void Emit3 (k3Base*, v3Base*){
+void Emit3 (k3Base* k3, v3Base* v3){
 
-
+    pthread_t currThreadID  = pthread_self();
+    listOfPairsK3BaseV3Base *currContainer =  containerReduceGlobal.at(currThreadID);
+    std::pair<k3Base* , v3Base*> currPair = make_pair(k3 , v3);
+    currContainer->push_back(currPair);
 }
