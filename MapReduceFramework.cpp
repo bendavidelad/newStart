@@ -38,7 +38,6 @@ unordered_map<pthread_t , vectorOfPairsK3BaseV3Base*> containerReduceK3V3Global;
 bool isJoin = false;
 
 
-auto globalFirstIt = postShuffleContainerK2V2VECGlobal.begin();
 
 //########################################################################
 // Semaphores
@@ -249,11 +248,16 @@ void* shuffle(void*)
         {
             if ((preShuffleThreadsContainerK2V2Global[threadsGlobal[i]]->size() > 0))
             {
-                pair<k2Base*, v2Base*> currPair = preShuffleThreadsContainerK2V2Global.at(threadsGlobal[i])->back();
                 pthread_t currThreadID  = threadsGlobal[i];
                 //locking the critical code section-> the mutual resource
+
                 pthread_mutex_lock(&mutexMapGlobal[currThreadID]);
+                pair<k2Base*, v2Base*> currPair = preShuffleThreadsContainerK2V2Global.at(threadsGlobal[i])->back();
+                cout << "curr thread id" <<currThreadID << endl; // TODO  DELETE
                 preShuffleThreadsContainerK2V2Global.at(threadsGlobal[i])->pop_back();
+                //unlock the mutex
+                pthread_mutex_unlock(&mutexMapGlobal[currThreadID]);
+
                 if (postShuffleContainerK2V2VECGlobal.count(currPair.first))
                 {
                     postShuffleContainerK2V2VECGlobal.at(currPair.first).push_back(currPair.second);
@@ -265,8 +269,6 @@ void* shuffle(void*)
                     MID_ITEM newPair = make_pair(currPair.first, vecV2Base);
                     postShuffleContainerK2V2VECGlobal.insert(newPair);
                 }
-                //unlock the mutex
-                pthread_mutex_unlock(&mutexMapGlobal[currThreadID]);
                 sem_wait(&semaphoreShuffle);
                 break;
             }
@@ -422,6 +424,16 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     //in this point all the treads definitely have finished
     isJoin = true;
     joinShuffle(shuffleID);
+
+
+    for (std::map<k2Base*, V2_VEC>::iterator it=postShuffleContainerK2V2VECGlobal.begin(); it!=postShuffleContainerK2V2VECGlobal.end(); ++it)
+    {
+        FileName* fileName = (FileName*)((*it).first);
+        cout << fileName->getFileName() << endl;
+//        FileName g =(FileName)( preShuffleThreadsContainerK2V2Global[threadsGlobal[i]]->back().first);
+//        cout<<"Sha " <<g->getFileName()<<endl;
+    }
+
     itemsVecPlace = (int)postShuffleContainerK2V2VECGlobal.size();
     for (int j = 0; j < multiThreadLevelGlobal; ++j)
     {
@@ -452,6 +464,7 @@ void Emit2 (k2Base* k2, v2Base* v2){
 
     pthread_t currThreadID  = pthread_self();
     vectorOfPairsK2BaseV2Base *currContainer =  preShuffleThreadsContainerK2V2Global.at(currThreadID);
+//    cout << k2 << endl;
     std::pair<k2Base* , v2Base*> currPair = make_pair(k2 , v2);
     //locking the critical code section-> the mutual resource
     pthread_mutex_lock(&mutexMapGlobal[currThreadID]);

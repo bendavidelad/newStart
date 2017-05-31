@@ -35,7 +35,7 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
             filesInCurrentFolder.push_back(ent->d_name);
-            printf ("%s\n", ent->d_name);
+//            printf ("%s\n", ent->d_name);
         }
         closedir (dir);
     } else {
@@ -53,15 +53,19 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
         exit(EXIT_FAILURE);
     }
     for (std::list<std::string>::const_iterator iterator = filesInCurrentFolder.begin(), end
-            = filesInCurrentFolder.end(); iterator != end; ++iterator) {
+            = filesInCurrentFolder.end(); iterator != end; ++iterator)
+    {
         if ((*iterator).find(patternString) != std::string::npos) {
             FileName* currFile;
             try{
+
                 currFile = new FileName(*iterator);
             }catch(const std::bad_alloc&) {
                 cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
                 exit(EXIT_FAILURE);
             }
+            cout << "Address of currFile: " << currFile << endl;
+            cout <<  "string name of currFile: " << currFile->getFileName() << endl;
             Emit2(currFile, one);
             delete(currFile);
         }

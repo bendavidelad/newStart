@@ -64,6 +64,7 @@ OneClass::OneClass() {
  * #####################################################################################
  */
 FileName::FileName(std::string name) {
+    std::cout << "name new cunstrucor:  "  << name  << std::endl;
     fileName = name;
 }
 FileName::~FileName(){
