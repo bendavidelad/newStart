@@ -8,6 +8,8 @@
 #include <algorithm>
 #include "MapReduceFramework.h"
 #include "semaphore.h"
+#include "GridKeysValues.hpp"
+
 #include "MapReduceClientUser.h"
 
 #define KEYS_PER_THREAD 10
@@ -424,15 +426,25 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     isJoin = true;
     joinShuffle(shuffleID);
 
-    for (std::map<k2Base*, V2_VEC>::iterator it=postShuffleContainerK2V2VECGlobal.begin(); it!=postShuffleContainerK2V2VECGlobal.end(); ++it)
-    {
-        FileName* fileName = (FileName*)((*it).first);
-//        cout << fileName->getFileName() << endl;
-    }
-
-
     itemsVecPlace = (int)postShuffleContainerK2V2VECGlobal.size();
 
+    auto it = preShuffleThreadsContainerK2V2Global.begin();
+    for (it; it != preShuffleThreadsContainerK2V2Global.end(); ++it)
+    {
+
+        vectorOfPairsK2BaseV2Base * vec = ((*it).second);
+        auto it2 = (*vec).begin();
+//        for(it2; it2 !=((*it).second)->end(); ++it2)
+//        {
+//            cout<< "Row num " << ((RowMaxVal*)(*it2).first)->getRowNum()<<endl;
+//            cout<<  "Value " <<  ((RowMaxVal*)(*it2).first)->getValue()<<endl;
+//
+//            cout<<((Index*)(*it2).second)->getIndex()<<endl;
+//
+//        }
+
+//        cout  <<  ((RowMaxVal*)((*it).first))->getRowNum()<< endl;
+    }
     deletePreShuffleThreadsContainerK2V2Global();
 
     pthread_mutex_lock(&mutexThreadCreation);
@@ -452,7 +464,9 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
         outContainer.insert(outContainer.end(), (*containerReduceK3V3Global[threadsGlobal[i]]).begin(),
                             (*containerReduceK3V3Global[threadsGlobal[i]]).end());
     }
-    std::sort (outContainer.begin(), outContainer.end());
+    std::sort(outContainer.begin(), outContainer.end(), [](const OUT_ITEM &left, const OUT_ITEM &right) {
+        return (*left.first) < (*right.first);
+    });
 
     return outContainer;
 }
