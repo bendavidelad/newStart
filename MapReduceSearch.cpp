@@ -65,7 +65,7 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
                 cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
                 exit(EXIT_FAILURE);
             }
-//                Emit2(currFile, one);
+            Emit2(currFile, one);
             delete(currFile);
         }
     }

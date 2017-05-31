@@ -12,13 +12,13 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    std::cout <<argc<<endl;//TODO need to delete
+//    std::cout <<argc<<endl;//TODO need to delete
     if (argc <= 2){
         cout << BAD_INPUT_MSG <<endl;
         return -1;
     }
     string key = argv[1];
-    cout<<"this is the key:  "<< key<<endl;//TODO need to delete
+//    cout<<"this is the key:  "<< key<<endl;//TODO need to delete
     int numOfFiles = argc - 2;
     IN_ITEMS_VEC *in_items_vec;
     MapReduceSearch *mapReduceSearch;
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
     }
     for (int i = 2; i < argc; ++i){
         SubStringKey * subStringKey = new SubStringKey(key);
-        std::cerr << " key: "<<subStringKey<<"\n"<<std::fflush;
+//        std::cerr << " key: "<<subStringKey<<"\n"<<std::fflush;
         FolderNameKey * folderNameKey = new FolderNameKey(argv[i]);
         IN_ITEM pair  = std::make_pair(subStringKey, folderNameKey);
         in_items_vec->push_back(pair);

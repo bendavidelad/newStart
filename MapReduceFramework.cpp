@@ -82,7 +82,6 @@ IN_ITEMS_VEC* getChunkOfPairs(){
             cout<<BAD_ALLOC_MSG<<endl;
             exit(EXIT_FAILURE);
         }
-        cout << "yoyoyo "<< newVec->back().first << endl;
         return newVec;
     } else {
 
@@ -118,7 +117,6 @@ MID_ITEMS_VEC* getChunkOfPairsReduce(){
             cout<<BAD_ALLOC_MSG<<endl;
             exit(EXIT_FAILURE);
         }
-        cout << "yoyoyo "<< newVec->back().first << endl;
         return newVec;
     } else {
 
@@ -413,7 +411,7 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     //unlock mutex (x);
     pthread_mutex_unlock(&mutexThreadCreation);
     //the shuffle will activate only after the first emit (which will post the semaphore)
-//    sem_wait(&semaphoreShuffle);
+    sem_wait(&semaphoreShuffle);
     pthread_t shuffleID;
     int threadCreation = pthread_create(&shuffleID , NULL , shuffle , NULL);
     if (threadCreation)
@@ -443,6 +441,9 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
                             (*containerReduceK3V3Global[threadsGlobal[i]]).end());
     }
     OUT_ITEMS_VEC outputVec{ std::begin(outContainer), std::end(outContainer) };
+    for (int k = 0 ; k < outputVec.size() ; k++){
+        cout << outContainer.back().first << endl;
+    }
     return outputVec;
 }
 
