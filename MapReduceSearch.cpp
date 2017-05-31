@@ -74,6 +74,7 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
 
 void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const
 {
+
     const FileName* fileName = dynamic_cast<const FileName*>(key);
     std::string fileNameString = fileName->getFileName();
 
@@ -84,6 +85,8 @@ void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const
     {
         counter++;
     }
+//    cout << counter << endl;
+//    cout << ((FileName*)key)->getFileName() << endl;
     NumOfFiles *numOfFiles;
     FileNameReduce *fileNameReduce;
     try {
@@ -94,6 +97,4 @@ void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const
         exit(EXIT_FAILURE);
     }
     Emit3(fileNameReduce , numOfFiles);
-    delete(numOfFiles);
-    delete(fileNameReduce);
 }
