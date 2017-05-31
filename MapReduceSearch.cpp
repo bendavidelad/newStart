@@ -20,9 +20,7 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
 
 
 
-    cout << "HEREERERE" << endl;
     const SubStringKey* pattern = (const SubStringKey*)(key);
-    cout << "tgregreg" << endl;
 
     const FolderNameKey* folderName =(const FolderNameKey*)(val);
 
@@ -47,7 +45,6 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
     }
 
 
-    std::list<std::string> filesThatMatches;
     OneClass* one;
     try{
         one = new OneClass();

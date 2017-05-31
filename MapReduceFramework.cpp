@@ -74,7 +74,7 @@ IN_ITEMS_VEC* getChunkOfPairs(){
             chunkSize = start - 1;
         }
         IN_ITEMS_VEC::const_iterator first = givenVectorK1V1Global.begin() + start - chunkSize - 1;
-        IN_ITEMS_VEC::const_iterator last =  givenVectorK1V1Global.begin() + start - 1;
+        IN_ITEMS_VEC::const_iterator last =  givenVectorK1V1Global.begin() + start;
         vector<IN_ITEM>* newVec;
         try{
             newVec = new vector<IN_ITEM>(first, last);
@@ -206,8 +206,6 @@ void* execMap(void*)
         }
         for (int i = 0; i < currVec->size(); i++)
         {
-
-            cout << ((*currVec)[i]).first << endl;
             mapReduceGlobal->Map(((*currVec)[i]).first, ((*currVec)[i]).second); // might not
         }
     }
@@ -441,9 +439,10 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
                             (*containerReduceK3V3Global[threadsGlobal[i]]).end());
     }
     OUT_ITEMS_VEC outputVec{ std::begin(outContainer), std::end(outContainer) };
-    for (int k = 0 ; k < outputVec.size() ; k++){
-        cout << outContainer.back().first << endl;
-    }
+    cout << outContainer.size() << endl;
+//    for (int k = 0 ; k < outputVec.size() ; k++){
+//        cout << outContainer.back().first << endl;
+//    }
     return outputVec;
 }
 
