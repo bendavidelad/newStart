@@ -64,10 +64,9 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
                 cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
                 exit(EXIT_FAILURE);
             }
-            cout << "Address of currFile: " << currFile << endl;
-            cout <<  "string name of currFile: " << currFile->getFileName() << endl;
+//            cout << "Address of currFile: " << currFile << endl;
+//            cout <<  "string name of currFile: " << currFile->getFileName() << endl;
             Emit2(currFile, one);
-            delete(currFile);
         }
     }
     delete(one);
