@@ -63,21 +63,30 @@ unordered_map<pthread_t, pthread_mutex_t> mutexMapGlobal;
  */
 IN_ITEMS_VEC* getChunkOfPairs(){
     int chunkSize = KEYS_PER_THREAD;
-    if (itemsVecPlace > 0){
+    cout<<"tis is itemsVecPlace: "<<itemsVecPlace<<endl;
+
+    if (itemsVecPlace > 0)
+    {
+        cout<<"this is itemsVecPlace: "<<itemsVecPlace<<endl;
         // Critical Section!!!
+        if(itemsVecPlace < KEYS_PER_THREAD)
+        {
+            chunkSize = itemsVecPlace;
+        }
         pthread_mutex_lock(&mutexItemsVec);
         int start = itemsVecPlace;
-        itemsVecPlace -= KEYS_PER_THREAD;
+        itemsVecPlace -= chunkSize;
         pthread_mutex_unlock(&mutexItemsVec);
         // End of Critical Section!!!
         // check if there's less threads than KEYS_PER_THREAD
-        if (start < KEYS_PER_THREAD){
-            chunkSize = start - 1;
+        if (start == 0){
+            return nullptr;
         }
-        IN_ITEMS_VEC::const_iterator first = givenVectorK1V1Global.begin() + start - chunkSize - 1;
+        IN_ITEMS_VEC::const_iterator first = givenVectorK1V1Global.begin() + start - chunkSize;
         IN_ITEMS_VEC::const_iterator last =  givenVectorK1V1Global.begin() + start;
         vector<IN_ITEM>* newVec;
-        try{
+        try
+        {
             newVec = new vector<IN_ITEM>(first, last);
         }catch(const std::bad_alloc&){
             cout<<BAD_ALLOC_MSG<<endl;
@@ -95,7 +104,13 @@ IN_ITEMS_VEC* getChunkOfPairs(){
 
 MID_ITEMS_VEC* getChunkOfPairsReduce(){
     int chunkSize = KEYS_PER_THREAD;
+    cout<<"tis is itemsVecPlace in Reduce: "<<itemsVecPlace<<endl;
+
     if (itemsVecPlace > 0){
+        if(itemsVecPlace < KEYS_PER_THREAD)
+        {
+            chunkSize = itemsVecPlace;
+        }
         // Critical Section!!!
         pthread_mutex_lock(&mutexItemsVec);
         int start = itemsVecPlace;
@@ -103,12 +118,8 @@ MID_ITEMS_VEC* getChunkOfPairsReduce(){
         pthread_mutex_unlock(&mutexItemsVec);
         // End of Critical Section!!!
         // check if there's less threads than KEYS_PER_THREAD
-        if (start < KEYS_PER_THREAD){
-            chunkSize = start - 1;
-        }
-
         auto first = postShuffleContainerK2V2VECGlobal.begin();
-        std::advance(first , start - chunkSize - 1);
+        std::advance(first , start - chunkSize);
         auto last =  postShuffleContainerK2V2VECGlobal.begin();
         std::advance(last,start);
         vector<MID_ITEM>* newVec;
@@ -129,61 +140,6 @@ MID_ITEMS_VEC* getChunkOfPairsReduce(){
 
 
 //
-///**
-// *
-// * @return
-// */
-//MID_ITEMS_VEC* getChunkOfPairsReduce()
-//{
-//    itemsVecPlace = (int)postShuffleContainerK2V2VECGlobal.size();
-//    if (itemsVecPlace > 0)
-//    {
-//        MID_ITEMS_VEC* newVec;
-//        try{
-//            newVec = new vector<MID_ITEM>();
-//        }catch(const std::bad_alloc&){
-//            cout<<BAD_ALLOC_MSG<<endl;
-//            exit(EXIT_FAILURE);
-//        }
-//        // Critical Section!!!
-//        pthread_mutex_lock(&mutexItemsVec);
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//        itemsVecPlace -= KEYS_PER_THREAD;
-//        auto currStartIt = globalFirstIt;
-//        std::advance(globalFirstIt , KEYS_PER_THREAD);
-//
-//
-//
-//        pthread_mutex_unlock(&mutexItemsVec);
-//        auto end = postShuffleContainerK2V2VECGlobal.end();
-//
-//        int i = KEYS_PER_THREAD;
-//        for (globalFirstIt; globalFirstIt != end; globalFirstIt++)
-//        {
-//            newVec->push_back(*globalFirstIt);
-//            if(!i)
-//            {
-//                break;
-//            }
-//            i--;
-//        }
-//        return newVec;
-//    }
-//    else
-//    {
-//        return nullptr;
-//    }
-//}
-
-
 
 /**
  *
@@ -318,6 +274,7 @@ void creatingThreadsMap()
  */
 void joinThreads()
 {
+
     for(int j = 0; j< multiThreadLevelGlobal; ++j)
     {
         int rc;
@@ -347,6 +304,7 @@ void joinShuffle(pthread_t shuffleID)
 
 void creatingThreadsReduce()
 {
+    threadsGlobal.clear();
     int threadCreation, i;
     for(i = 0 ; i < multiThreadLevelGlobal ; i++)
     {
@@ -429,22 +387,21 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     itemsVecPlace = (int)postShuffleContainerK2V2VECGlobal.size();
 
     auto it = preShuffleThreadsContainerK2V2Global.begin();
-    for (it; it != preShuffleThreadsContainerK2V2Global.end(); ++it)
-    {
-
-        vectorOfPairsK2BaseV2Base * vec = ((*it).second);
-        auto it2 = (*vec).begin();
+//    for (it; it != preShuffleThreadsContainerK2V2Global.end(); ++it)
+//    {
+//        vectorOfPairsK2BaseV2Base * vec = ((*it).second);
+//        auto it2 = (*vec).begin();
 //        for(it2; it2 !=((*it).second)->end(); ++it2)
 //        {
+//            RowMaxVal =
+////            int i = dynamic_cast<int>((((*it2).first))->getRowNum());
 //            cout<< "Row num " << ((RowMaxVal*)(*it2).first)->getRowNum()<<endl;
 //            cout<<  "Value " <<  ((RowMaxVal*)(*it2).first)->getValue()<<endl;
-//
 //            cout<<((Index*)(*it2).second)->getIndex()<<endl;
 //
 //        }
-
 //        cout  <<  ((RowMaxVal*)((*it).first))->getRowNum()<< endl;
-    }
+//    }
     deletePreShuffleThreadsContainerK2V2Global();
 
     pthread_mutex_lock(&mutexThreadCreation);

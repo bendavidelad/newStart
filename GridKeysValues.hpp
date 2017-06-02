@@ -3,8 +3,8 @@
 
 
 #include <string>
-#include "../Framework/MapReduceClient.h"
-#include "../Framework/MapReduceFramework.h"
+#include "MapReduceClient.h"
+#include "MapReduceFramework.h"
 
 
 class Index : public k1Base, public k2Base
