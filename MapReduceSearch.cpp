@@ -21,9 +21,7 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
 
 
     const SubStringKey* pattern = (const SubStringKey*)(key);
-
     const FolderNameKey* folderName =(const FolderNameKey*)(val);
-
     std::string patternString = pattern->getSubString();
     std::string folderNameString = folderName->getFolderName();
 
@@ -35,7 +33,6 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
             filesInCurrentFolder.push_back(ent->d_name);
-//            printf ("%s\n", ent->d_name);
         }
         closedir (dir);
     } else {
@@ -64,8 +61,6 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
                 cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
                 exit(EXIT_FAILURE);
             }
-//            cout << "Address of currFile: " << currFile << endl;
-//            cout <<  "string name of currFile: " << currFile->getFileName() << endl;
             Emit2(currFile, one);
         }
     }
@@ -77,16 +72,12 @@ void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const
 
     const FileName* fileName = dynamic_cast<const FileName*>(key);
     std::string fileNameString = fileName->getFileName();
-
     int counter = 0;
-
     for (std::vector<v2Base *>::const_iterator iterator = vals.begin(), end
             = vals.end(); iterator != end; ++iterator)
     {
         counter++;
     }
-//    cout << counter << endl;
-//    cout << ((FileName*)key)->getFileName() << endl;
     NumOfFiles *numOfFiles;
     FileNameReduce *fileNameReduce;
     try {

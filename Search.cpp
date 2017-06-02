@@ -28,9 +28,9 @@ int main(int argc, char* argv[])
         cerr<<ERROR_MSG<<endl;
         exit(EXIT_FAILURE);
     }
-    for (int i = 2; i < argc; ++i){
+    for (int i = 2; i < argc; ++i)
+    {
         SubStringKey * subStringKey = new SubStringKey(key);
-//        std::cerr << " key: "<<subStringKey<<"\n"<<std::fflush;
         FolderNameKey * folderNameKey = new FolderNameKey(argv[i]);
         IN_ITEM pair  = std::make_pair(subStringKey, folderNameKey);
         in_items_vec->push_back(pair);
@@ -44,8 +44,6 @@ int main(int argc, char* argv[])
         for (int k = 0 ; k < g.getNumOfFiles() ; k++){
             std::cout << h.getFileName() << " ";
         }
-//        std::cout<<h.getFileName()<<endl;
-//        std::cout << g.getNumOfFiles() << endl;
     }
 
 

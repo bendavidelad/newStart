@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <map>
 #include <list>
-#include <libltdl/lt_system.h>
 #include <unordered_map>
 #include <algorithm>
 #include "MapReduceFramework.h"
@@ -12,6 +11,7 @@
 #include "MapReduceClientUser.h"
 
 #define KEYS_PER_THREAD 10
+#define EXIT_FAILURE 1
 
 
 //########################################################################
@@ -23,6 +23,15 @@ typedef std::vector<pair<k2Base*, v2Base*>>  vectorOfPairsK2BaseV2Base;
 typedef std::pair<k2Base*, V2_VEC> MID_ITEM;
 typedef std::vector<MID_ITEM> MID_ITEMS_VEC;
 static const std::string BAD_ALLOC_MSG = "ERROR- Bad Allocation";
+static const std::string ERROR_MSG = "MapReduceFramework Failure:";
+static const std::string ERROR_MSG_END = " failed.";
+static const std::string FUNC_NAME_GET_CHUNKE_OF_PAIRS= "getChunkOfPairs";
+static const std::string FUNC_NAME_GET_CHUNKE_OF_PAIRS_REDUCE= "getChunkOfPairsReduce";
+static const std::string FUNC_NAME_CREATING_THREADS_MAP = "creatingThreadsMap";
+static const std::string FUNC_NAME_CREATING_THREADS_REDUCE= "creatingThreadsReduce";
+static const std::string FUNC_NAME_RUN_MAP_REDUCE_FRAMEWORK = "RunMapReduceFramework";
+static const std::string FUNC_NAME_JOIN_THREADS= "jointhreads";
+
 
 //########################################################################
 // Globals
@@ -85,8 +94,9 @@ IN_ITEMS_VEC* getChunkOfPairs(){
         try
         {
             newVec = new vector<IN_ITEM>(first, last);
-        }catch(const std::bad_alloc&){
-            cout<<BAD_ALLOC_MSG<<endl;
+        }catch(const std::bad_alloc&)
+        {
+            cerr<<ERROR_MSG<<FUNC_NAME_GET_CHUNKE_OF_PAIRS<<ERROR_MSG_END<<endl;
             exit(EXIT_FAILURE);
         }
         return newVec;
@@ -121,8 +131,9 @@ MID_ITEMS_VEC* getChunkOfPairsReduce(){
         vector<MID_ITEM>* newVec;
         try{
             newVec = new vector<MID_ITEM>(first, last);
-        }catch(const std::bad_alloc&){
-            cout<<BAD_ALLOC_MSG<<endl;
+        }catch(const std::bad_alloc&)
+        {
+            cerr<<ERROR_MSG<<FUNC_NAME_GET_CHUNKE_OF_PAIRS_REDUCE<<ERROR_MSG_END<<endl;
             exit(EXIT_FAILURE);
         }
         return newVec;
@@ -162,11 +173,11 @@ void* execMap(void*)
             mapReduceGlobal->Map(((*currVec)[i]).first, ((*currVec)[i]).second); // might not
         }
     }
-    pthread_exit(NULL); //TODO might gonna need to check
+    pthread_exit(NULL);
 }
 
 
-void* execReduce(void*)//TODO update
+void* execReduce(void*)
 {
     pthread_mutex_lock(&mutexThreadCreation);
     //lock(x) ->here all the threads wait for the main thread to finish making all the threads
@@ -186,7 +197,7 @@ void* execReduce(void*)//TODO update
             mapReduceGlobal->Reduce(((*currVec)[i]).first, ((*currVec)[i]).second);
         }
     }
-    pthread_exit(NULL); //TODO might gonna need to check
+    pthread_exit(NULL);
 }
 
 
@@ -232,7 +243,7 @@ void* shuffle(void*)
         }
     }
 
-    pthread_exit(NULL); //TODO might gonna need to check
+    pthread_exit(NULL);
 }
 /**
  * creating all the threds,mutex and their containers
@@ -247,7 +258,10 @@ void creatingThreadsMap()
         vectorOfPairsK2BaseV2Base *currContainer;
         try {
             currContainer = new vectorOfPairsK2BaseV2Base();
-        }catch (const std::bad_alloc&){
+        }catch (const std::bad_alloc&)
+        {
+            cerr<<ERROR_MSG<<FUNC_NAME_CREATING_THREADS_MAP<<ERROR_MSG_END<<endl;
+
             exit(EXIT_FAILURE);
         }
         std::pair<pthread_t, vectorOfPairsK2BaseV2Base*> pairToThreadContainer = make_pair(threadsGlobal[i],
@@ -259,8 +273,9 @@ void creatingThreadsMap()
         //make the pair for the mutex map that
         std::pair<pthread_t, pthread_mutex_t> pairToMutexMap = make_pair(threadsGlobal[i], thread_mutex);
         mutexMapGlobal.insert(pairToMutexMap);
-        if (threadCreation){
-            cout << "Error:unable to create thread," << threadCreation << endl;
+        if (threadCreation)
+        {
+            cerr<<ERROR_MSG<<FUNC_NAME_CREATING_THREADS_MAP<<ERROR_MSG_END<<endl;
             exit(EXIT_FAILURE);
         }
     }
@@ -278,7 +293,8 @@ void joinThreads()
         rc = pthread_join(threadsGlobal[j], &status);
         if(rc)
         {
-            cerr<<"error"<<rc<<endl;//TODO make a standard error
+            cerr<<ERROR_MSG<<FUNC_NAME_JOIN_THREADS<<ERROR_MSG_END<<endl;
+            exit(EXIT_FAILURE);
         }
     }
 }
@@ -294,7 +310,8 @@ void joinShuffle(pthread_t shuffleID)
     rc = pthread_join(shuffleID, &status);
     if(rc)
     {
-        cerr<<"error"<<rc<<endl;//TODO make a standard error
+        cerr<<ERROR_MSG<<FUNC_NAME_CREATING_THREADS_MAP<<ERROR_MSG_END<<endl;
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -309,14 +326,15 @@ void creatingThreadsReduce()
         try {
             currContainer = new OUT_ITEMS_VEC();
         }catch (const std::bad_alloc&){
-            exit(EXIT_FAILURE);//TODO format system call
+            cerr<<ERROR_MSG<<FUNC_NAME_CREATING_THREADS_REDUCE<<ERROR_MSG_END<<endl;
+            exit(EXIT_FAILURE);
         }
         std::pair<pthread_t, OUT_ITEMS_VEC*> pairToThreadContainer = make_pair
                 (threadsGlobal[i], currContainer);
         containerReduceK3V3Global.insert(pairToThreadContainer);
         if (threadCreation)
         {
-            cout << "Error:unable to create thread," << threadCreation << endl;
+            cerr<<ERROR_MSG<<FUNC_NAME_CREATING_THREADS_REDUCE<<ERROR_MSG_END<<endl;
             exit(EXIT_FAILURE);
         }
     }
@@ -371,7 +389,7 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     int threadCreation = pthread_create(&shuffleID , NULL , shuffle , NULL);
     if (threadCreation)
     {
-        cout << "Error:unable to create thread," << threadCreation << endl;
+        cerr<<ERROR_MSG<<FUNC_NAME_RUN_MAP_REDUCE_FRAMEWORK<<ERROR_MSG_END<<endl;
         exit(EXIT_FAILURE);
     }
     //waiting until all the threads will finish
@@ -383,21 +401,6 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     itemsVecPlace = (int)postShuffleContainerK2V2VECGlobal.size();
 
     auto it = preShuffleThreadsContainerK2V2Global.begin();
-//    for (it; it != preShuffleThreadsContainerK2V2Global.end(); ++it)
-//    {
-//        vectorOfPairsK2BaseV2Base * vec = ((*it).second);
-//        auto it2 = (*vec).begin();
-//        for(it2; it2 !=((*it).second)->end(); ++it2)
-//        {
-//            RowMaxVal =
-////            int i = dynamic_cast<int>((((*it2).first))->getRowNum());
-//            cout<< "Row num " << ((RowMaxVal*)(*it2).first)->getRowNum()<<endl;
-//            cout<<  "Value " <<  ((RowMaxVal*)(*it2).first)->getValue()<<endl;
-//            cout<<((Index*)(*it2).second)->getIndex()<<endl;
-//
-//        }
-//        cout  <<  ((RowMaxVal*)((*it).first))->getRowNum()<< endl;
-//    }
     deletePreShuffleThreadsContainerK2V2Global();
 
     pthread_mutex_lock(&mutexThreadCreation);
@@ -407,11 +410,6 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     joinThreads();
 
     OUT_ITEMS_VEC outContainer;
-
-//    for ( auto iter = containerReduceK3V3Global.begin(); iter != containerReduceK3V3Global.end();
-//          ++iter )
-//        std::cout << iter->second->size() << endl;
-
 
     for (int i = 0 ; i < containerReduceK3V3Global.size() ; i++){
         outContainer.insert(outContainer.end(), (*containerReduceK3V3Global[threadsGlobal[i]]).begin(),
@@ -427,7 +425,6 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
 
 
 void Emit2 (k2Base* k2, v2Base* v2){
-
     pthread_t currThreadID  = pthread_self();
     vectorOfPairsK2BaseV2Base *currContainer =  preShuffleThreadsContainerK2V2Global.at(currThreadID);
     std::pair<k2Base* , v2Base*> currPair = make_pair(k2 , v2);
@@ -444,8 +441,5 @@ void Emit3 (k3Base* k3, v3Base* v3){
     pthread_t currThreadID  = pthread_self();
     OUT_ITEMS_VEC *currContainer =  containerReduceK3V3Global.at(currThreadID);
     std::pair<k3Base* , v3Base*> currPair = make_pair(k3 , v3);
-    FileName* fileName = (FileName*)(k3);
-//    cout << fileName->getFileName() << endl;
-
     currContainer->push_back(currPair);
 }
