@@ -8,7 +8,6 @@
 #include <algorithm>
 #include "MapReduceFramework.h"
 #include "semaphore.h"
-#include "GridKeysValues.hpp"
 
 #include "MapReduceClientUser.h"
 
@@ -67,11 +66,11 @@ IN_ITEMS_VEC* getChunkOfPairs(){
     if (itemsVecPlace > 0)
     {
         // Critical Section!!!
+        pthread_mutex_lock(&mutexItemsVec);
         if(itemsVecPlace < KEYS_PER_THREAD)
         {
             chunkSize = itemsVecPlace;
         }
-        pthread_mutex_lock(&mutexItemsVec);
         int start = itemsVecPlace;
         itemsVecPlace -= chunkSize;
         pthread_mutex_unlock(&mutexItemsVec);
