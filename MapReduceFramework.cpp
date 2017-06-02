@@ -63,11 +63,9 @@ unordered_map<pthread_t, pthread_mutex_t> mutexMapGlobal;
  */
 IN_ITEMS_VEC* getChunkOfPairs(){
     int chunkSize = KEYS_PER_THREAD;
-    cout<<"tis is itemsVecPlace: "<<itemsVecPlace<<endl;
 
     if (itemsVecPlace > 0)
     {
-        cout<<"this is itemsVecPlace: "<<itemsVecPlace<<endl;
         // Critical Section!!!
         if(itemsVecPlace < KEYS_PER_THREAD)
         {
@@ -104,7 +102,6 @@ IN_ITEMS_VEC* getChunkOfPairs(){
 
 MID_ITEMS_VEC* getChunkOfPairsReduce(){
     int chunkSize = KEYS_PER_THREAD;
-    cout<<"tis is itemsVecPlace in Reduce: "<<itemsVecPlace<<endl;
 
     if (itemsVecPlace > 0){
         if(itemsVecPlace < KEYS_PER_THREAD)
