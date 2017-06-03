@@ -49,5 +49,12 @@ int main(int argc, char* argv[])
         delete ((*it).first);
         delete ((*it).second);
     }
+    for(auto it = res.begin(); it !=res.end(); ++it)
+    {
+        delete ((*it).first);
+        delete ((*it).second);
+    }
+    delete(mapReduceSearch);
+    delete(in_items_vec);
     return 0;
 }

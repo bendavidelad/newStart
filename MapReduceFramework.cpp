@@ -177,7 +177,6 @@ MID_ITEMS_VEC* getChunkOfPairsReduce(){
         }
         return newVec;
     } else {
-
         return nullptr;
     }
 }
@@ -215,7 +214,9 @@ void* execMap(void*)
         {
             mapReduceGlobal->Map(((*currVec)[i]).first, ((*currVec)[i]).second); // might not
         }
+        delete(currVec);
     }
+
 
     startMessage = "Thread ExecMap terminated [";
     endMessage = "]\n";
@@ -248,6 +249,7 @@ void* execReduce(void*)
         {
             mapReduceGlobal->Reduce(((*currVec)[i]).first, ((*currVec)[i]).second);
         }
+        delete(currVec);
     }
 
     startMessage = "Thread ExecReduce terminated [";
@@ -466,7 +468,11 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     joinShuffle(shuffleID);
     itemsVecPlace = (int)postShuffleContainerK2V2VECGlobal.size();
     auto it = preShuffleThreadsContainerK2V2Global.begin();
-    deletePreShuffleThreadsContainerK2V2Global();
+    if(autoDeleteV2K2)
+    {
+        deletePreShuffleThreadsContainerK2V2Global();
+
+    }
     gettimeofday(&endMap, NULL);
     double ret = ((endMap.tv_usec) - (startMap.tv_usec));
     ret *= 1000;
@@ -479,10 +485,12 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     pthread_mutex_unlock(&mutexThreadCreation);
     joinThreads();
     OUT_ITEMS_VEC outContainer;
-    for (int i = 0 ; i < containerReduceK3V3Global.size() ; i++){
+    for (int i = 0 ; i < containerReduceK3V3Global.size() ; i++)
+    {
         outContainer.insert(outContainer.end(), (*containerReduceK3V3Global[threadsGlobal[i]]).begin(),
                             (*containerReduceK3V3Global[threadsGlobal[i]]).end());
     }
+
     std::sort(outContainer.begin(), outContainer.end(), [](const OUT_ITEM &left, const OUT_ITEM &right) {
         return (*left.first) < (*right.first);
     });
@@ -491,6 +499,11 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     ret *= 1000;
     log("Reduce took " + to_string(ret) + "ns\n");
     log("RunMapReduceFramework finished\n" );
+    for(auto iter = containerReduceK3V3Global.begin() ; iter != containerReduceK3V3Global.end(); ++iter)
+    {
+        delete((*iter).second);
+    }
+
     return outContainer;
 }
 
