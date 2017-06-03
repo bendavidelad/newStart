@@ -53,6 +53,11 @@ std::map<k2Base*, V2_VEC , bool (*)(k2Base* , k2Base*)> postShuffleContainerK2V2
 
 unordered_map<pthread_t , OUT_ITEMS_VEC*> containerReduceK3V3Global;
 
+std::ofstream ofs("MapReduceFramework.log", std::ofstream::out);
+
+time_t t = time(0);
+struct tm * now = localtime( & t );
+
 bool isJoin = false;
 
 
@@ -67,11 +72,18 @@ const int WORK_BETWEEN_THE_PROCESSES = 0;
 //  Mutex
 pthread_mutex_t mutexItemsVec = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexThreadCreation = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexLogFile = PTHREAD_MUTEX_INITIALIZER;
+
 unordered_map<pthread_t, pthread_mutex_t> mutexMapGlobal;
 
 
 
-
+void log( const std::string &text)
+{
+    pthread_mutex_lock(&mutexLogFile);
+    ofs << text << std::endl;
+    pthread_mutex_unlock(&mutexLogFile);
+}
 
 /**
  *  A function that takes a chunk from the vector
@@ -165,6 +177,10 @@ MID_ITEMS_VEC* getChunkOfPairsReduce(){
  */
 void* execMap(void*)
 {
+    log("Thread ExecMap created [" + to_string(now->tm_mday) +  "." + to_string(now->tm_mon + 1)
+        + "."
+        + to_string(now->tm_year + 1900) + " " + to_string(now->tm_hour) + ":" + to_string(now->tm_min)
+        +":"+ to_string(now->tm_sec) +"]\\n");
     pthread_mutex_lock(&mutexThreadCreation);
     //lock(x) ->here all the threads wait for the main thread to finish making all the threads
     //unlock(x)-> and now after we past this phase ot mean no one locked x
@@ -190,6 +206,7 @@ void* execMap(void*)
 
 void* execReduce(void*)
 {
+    log("Thread ExecReduce created [DD.MM.YYYY HH:MM:SS]\\n");
     pthread_mutex_lock(&mutexThreadCreation);
     //lock(x) ->here all the threads wait for the main thread to finish making all the threads
     //unlock(x)-> and now after we past this phase ot mean no one locked x
@@ -219,6 +236,7 @@ void* execReduce(void*)
  */
 void* shuffle(void*)
 {
+    log("Thread Shuffle created [DD.MM.YYYY HH:MM:SS]\\n");
     while(!isJoin)
     {
         for (unsigned long i = 0; i < threadsGlobal.size(); i++)
@@ -381,17 +399,13 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
                 return *k2Base1 < *k2Base2;
             }
     );
-//    char cCurrentPath[FILENAME_MAX];
-//
-//    if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
-//    {
-//        cout << errno << endl;
-//        return NULL;
-//    }
-//
-//    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
-//
-//    std::ofstream ofs(cCurrentPath + std::string("log.txt"), std::ofstream::out);
+    log("RunMapReduceFramework started with " + to_string(multiThreadLevel) + " threads\n");
+    cout << (now->tm_year + 1900) << '-'
+         << (now->tm_mon + 1) << '-'
+         <<  now->tm_mday
+         << endl;
+
+
     itemsVecPlace = (int)itemsVec.size();
     mapReduceGlobal = &mapReduce;
     multiThreadLevelGlobal = multiThreadLevel;
