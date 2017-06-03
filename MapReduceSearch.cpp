@@ -37,7 +37,6 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
         closedir (dir);
     } else {
         /* could not open directory */
-        perror ("");
         return;
     }
 

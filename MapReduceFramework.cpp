@@ -5,8 +5,16 @@
 #include <list>
 #include <unordered_map>
 #include <algorithm>
+#include <ios>
+#include <bits/ios_base.h>
+#include <fstream>
+#include <iostream>
+#include <zconf.h>
 #include "MapReduceFramework.h"
 #include "semaphore.h"
+#include <unistd.h>
+#define GetCurrentDir getcwd
+
 
 #include "MapReduceClientUser.h"
 
@@ -74,12 +82,12 @@ IN_ITEMS_VEC* getChunkOfPairs(){
 
     if (itemsVecPlace > 0)
     {
-        // Critical Section!!!
-        pthread_mutex_lock(&mutexItemsVec);
         if(itemsVecPlace < KEYS_PER_THREAD)
         {
             chunkSize = itemsVecPlace;
         }
+        // Critical Section!!!
+        pthread_mutex_lock(&mutexItemsVec);
         int start = itemsVecPlace;
         itemsVecPlace -= chunkSize;
         pthread_mutex_unlock(&mutexItemsVec);
@@ -120,10 +128,13 @@ MID_ITEMS_VEC* getChunkOfPairsReduce(){
         // Critical Section!!!
         pthread_mutex_lock(&mutexItemsVec);
         int start = itemsVecPlace;
-        itemsVecPlace -= KEYS_PER_THREAD;
+        itemsVecPlace -= chunkSize;
         pthread_mutex_unlock(&mutexItemsVec);
         // End of Critical Section!!!
         // check if there's less threads than KEYS_PER_THREAD
+        if (start == 0){
+            return nullptr;
+        }
         auto first = postShuffleContainerK2V2VECGlobal.begin();
         std::advance(first , start - chunkSize);
         auto last =  postShuffleContainerK2V2VECGlobal.begin();
@@ -370,6 +381,17 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
                 return *k2Base1 < *k2Base2;
             }
     );
+//    char cCurrentPath[FILENAME_MAX];
+//
+//    if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
+//    {
+//        cout << errno << endl;
+//        return NULL;
+//    }
+//
+//    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
+//
+//    std::ofstream ofs(cCurrentPath + std::string("log.txt"), std::ofstream::out);
     itemsVecPlace = (int)itemsVec.size();
     mapReduceGlobal = &mapReduce;
     multiThreadLevelGlobal = multiThreadLevel;
