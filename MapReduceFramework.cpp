@@ -13,6 +13,12 @@
 #include "MapReduceFramework.h"
 #include "semaphore.h"
 #include <unistd.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <time.h>
+#include <math.h>
+#include <sys/time.h>
+
 #define GetCurrentDir getcwd
 
 
@@ -30,7 +36,6 @@ int itemsVecPlace;
 typedef std::vector<pair<k2Base*, v2Base*>>  vectorOfPairsK2BaseV2Base;
 typedef std::pair<k2Base*, V2_VEC> MID_ITEM;
 typedef std::vector<MID_ITEM> MID_ITEMS_VEC;
-static const std::string BAD_ALLOC_MSG = "ERROR- Bad Allocation";
 static const std::string ERROR_MSG = "MapReduceFramework Failure:";
 static const std::string ERROR_MSG_END = " failed.";
 static const std::string FUNC_NAME_GET_CHUNKE_OF_PAIRS= "getChunkOfPairs";
@@ -55,8 +60,11 @@ unordered_map<pthread_t , OUT_ITEMS_VEC*> containerReduceK3V3Global;
 
 std::ofstream ofs("MapReduceFramework.log", std::ofstream::out);
 
-time_t t = time(0);
-struct tm * now = localtime( & t );
+char buffer[26];
+struct tm* tm_info;
+struct timeval tv;
+
+struct timeval startMap , endMap , startReduce , endReduce;
 
 bool isJoin = false;
 
@@ -81,8 +89,16 @@ unordered_map<pthread_t, pthread_mutex_t> mutexMapGlobal;
 void log( const std::string &text)
 {
     pthread_mutex_lock(&mutexLogFile);
-    ofs << text << std::endl;
+    ofs << text;
     pthread_mutex_unlock(&mutexLogFile);
+}
+
+
+string getTime(){
+    gettimeofday(&tv, NULL);
+    tm_info = localtime(&tv.tv_sec);
+    strftime(buffer, 26, "%d.%m.%Y %H:%M:%S", tm_info);
+    return buffer;
 }
 
 /**
@@ -177,10 +193,10 @@ MID_ITEMS_VEC* getChunkOfPairsReduce(){
  */
 void* execMap(void*)
 {
-    log("Thread ExecMap created [" + to_string(now->tm_mday) +  "." + to_string(now->tm_mon + 1)
-        + "."
-        + to_string(now->tm_year + 1900) + " " + to_string(now->tm_hour) + ":" + to_string(now->tm_min)
-        +":"+ to_string(now->tm_sec) +"]\\n");
+    string startMessage = "Thread ExecMap created [";
+    string endMessage = "]\n";
+    log(startMessage + getTime() + endMessage);
+
     pthread_mutex_lock(&mutexThreadCreation);
     //lock(x) ->here all the threads wait for the main thread to finish making all the threads
     //unlock(x)-> and now after we past this phase ot mean no one locked x
@@ -200,13 +216,21 @@ void* execMap(void*)
             mapReduceGlobal->Map(((*currVec)[i]).first, ((*currVec)[i]).second); // might not
         }
     }
+
+    startMessage = "Thread ExecMap terminated [";
+    endMessage = "]\n";
+    log(startMessage + getTime() + endMessage);
+
     pthread_exit(NULL);
 }
 
 
 void* execReduce(void*)
 {
-    log("Thread ExecReduce created [DD.MM.YYYY HH:MM:SS]\\n");
+    string startMessage = "Thread ExecReduce created [";
+    string endMessage = "]\n";
+    log(startMessage + getTime() + endMessage);
+
     pthread_mutex_lock(&mutexThreadCreation);
     //lock(x) ->here all the threads wait for the main thread to finish making all the threads
     //unlock(x)-> and now after we past this phase ot mean no one locked x
@@ -225,6 +249,11 @@ void* execReduce(void*)
             mapReduceGlobal->Reduce(((*currVec)[i]).first, ((*currVec)[i]).second);
         }
     }
+
+    startMessage = "Thread ExecReduce terminated [";
+    endMessage = "]\n";
+    log(startMessage + getTime() + endMessage);
+
     pthread_exit(NULL);
 }
 
@@ -236,7 +265,10 @@ void* execReduce(void*)
  */
 void* shuffle(void*)
 {
-    log("Thread Shuffle created [DD.MM.YYYY HH:MM:SS]\\n");
+    string startMessage = "Thread Shuffle created [";
+    string endMessage = "]\n";
+    log(startMessage + getTime() + endMessage);
+
     while(!isJoin)
     {
         for (unsigned long i = 0; i < threadsGlobal.size(); i++)
@@ -271,6 +303,10 @@ void* shuffle(void*)
             }
         }
     }
+
+    startMessage = "Thread Shuffle terminated [";
+    endMessage = "]\n";
+    log(startMessage + getTime() + endMessage);
 
     pthread_exit(NULL);
 }
@@ -399,13 +435,8 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
                 return *k2Base1 < *k2Base2;
             }
     );
+    gettimeofday(&startMap, NULL);
     log("RunMapReduceFramework started with " + to_string(multiThreadLevel) + " threads\n");
-    cout << (now->tm_year + 1900) << '-'
-         << (now->tm_mon + 1) << '-'
-         <<  now->tm_mday
-         << endl;
-
-
     itemsVecPlace = (int)itemsVec.size();
     mapReduceGlobal = &mapReduce;
     multiThreadLevelGlobal = multiThreadLevel;
@@ -433,20 +464,21 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     //in this point all the treads definitely have finished
     isJoin = true;
     joinShuffle(shuffleID);
-
     itemsVecPlace = (int)postShuffleContainerK2V2VECGlobal.size();
-
     auto it = preShuffleThreadsContainerK2V2Global.begin();
     deletePreShuffleThreadsContainerK2V2Global();
-
+    gettimeofday(&endMap, NULL);
+    double ret = ((endMap.tv_usec) - (startMap.tv_usec));
+    ret *= 1000;
+    log("Map and Shuffle took " + to_string(ret) + "ns\n");
+    gettimeofday(&startReduce, NULL);
+    // Reduce threads are starting
     pthread_mutex_lock(&mutexThreadCreation);
     creatingThreadsReduce();
     auto first = postShuffleContainerK2V2VECGlobal.begin();
     pthread_mutex_unlock(&mutexThreadCreation);
     joinThreads();
-
     OUT_ITEMS_VEC outContainer;
-
     for (int i = 0 ; i < containerReduceK3V3Global.size() ; i++){
         outContainer.insert(outContainer.end(), (*containerReduceK3V3Global[threadsGlobal[i]]).begin(),
                             (*containerReduceK3V3Global[threadsGlobal[i]]).end());
@@ -454,7 +486,11 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     std::sort(outContainer.begin(), outContainer.end(), [](const OUT_ITEM &left, const OUT_ITEM &right) {
         return (*left.first) < (*right.first);
     });
-
+    gettimeofday(&endReduce, NULL);
+    ret = ((endReduce.tv_usec) - (startReduce.tv_usec));
+    ret *= 1000;
+    log("Reduce took " + to_string(ret) + "ns\n");
+    log("RunMapReduceFramework finished\n" );
     return outContainer;
 }
 
