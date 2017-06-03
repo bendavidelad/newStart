@@ -496,17 +496,21 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     for(auto iter = postShuffleContainerK2V2VECGlobal.begin() ; iter != postShuffleContainerK2V2VECGlobal.end(); ++iter)
     {
         delete(*iter).first;
+        auto iter2 = ((*iter).second).begin();
+        for(iter2; iter2 != ((*iter).second).end(); ++iter2)
+        {
+
+
+            OneClass* checkk =(OneClass*) (*iter2);
+            cout<<checkk->getOne();
+            cout<<"ssssssssssssssssssss";
+//            delete(*iter2);
+        }
     }
 
     for(auto iter = containerReduceK3V3Global.begin() ; iter != containerReduceK3V3Global.end(); ++iter)
     {
-        auto iter2 = ((*iter).second)->begin();
-        for(iter2; iter2 != ((*iter).second)->end(); ++iter2)
-        {
-            delete(*iter2);
-        }
-        delete(((*iter).second).);
-
+        delete((*iter).second);
     }
     return outContainer;
 }
