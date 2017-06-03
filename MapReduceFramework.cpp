@@ -212,7 +212,7 @@ void* execMap(void*)
         }
         for (int i = 0; i < currVec->size(); i++)
         {
-            mapReduceGlobal->Map(((*currVec)[i]).first, ((*currVec)[i]).second); // might not
+            mapReduceGlobal->Map(((*currVec)[i]).first, ((*currVec)[i]).second);
         }
         delete(currVec);
     }
@@ -250,6 +250,7 @@ void* execReduce(void*)
             mapReduceGlobal->Reduce(((*currVec)[i]).first, ((*currVec)[i]).second);
         }
         delete(currVec);
+
     }
 
     startMessage = "Thread ExecReduce terminated [";
@@ -412,6 +413,7 @@ void deletePreShuffleThreadsContainerK2V2Global()
     for (int j = 0; j < multiThreadLevelGlobal; ++j)
     {
         delete preShuffleThreadsContainerK2V2Global[threadsGlobal[j]];
+        preShuffleThreadsContainerK2V2Global[threadsGlobal[j]] = nullptr;
     }
 }
 
@@ -465,7 +467,6 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     if(autoDeleteV2K2)
     {
         deletePreShuffleThreadsContainerK2V2Global();
-
     }
     gettimeofday(&endMap, NULL);
     double ret = ((endMap.tv_usec) - (startMap.tv_usec));
@@ -495,17 +496,19 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     log("RunMapReduceFramework finished\n" );
     for(auto iter = postShuffleContainerK2V2VECGlobal.begin() ; iter != postShuffleContainerK2V2VECGlobal.end(); ++iter)
     {
-        delete(*iter).first;
+        delete (*iter).first;
         auto iter2 = ((*iter).second).begin();
         for(iter2; iter2 != ((*iter).second).end(); ++iter2)
         {
             delete(*iter2);
+            (*iter2) = nullptr;
         }
     }
 
     for(auto iter = containerReduceK3V3Global.begin() ; iter != containerReduceK3V3Global.end(); ++iter)
     {
         delete((*iter).second);
+        ((*iter).second) = nullptr;
     }
     return outContainer;
 }

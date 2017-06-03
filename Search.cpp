@@ -1,5 +1,4 @@
 #include <iostream>
-#include <assert.h>
 #include <algorithm>
 #include <stdlib.h>
 #include "MapReduceSearch.h"
@@ -48,13 +47,20 @@ int main(int argc, char* argv[])
     {
         delete ((*it).first);
         delete ((*it).second);
+        ((*it).first) = nullptr;
+        ((*it).second)= nullptr;
     }
     for(auto it = res.begin(); it !=res.end(); ++it)
     {
         delete ((*it).first);
         delete ((*it).second);
+        ((*it).first) = nullptr;
+        ((*it).second)= nullptr;
+
     }
     delete(mapReduceSearch);
     delete(in_items_vec);
+    mapReduceSearch = nullptr;
+    in_items_vec = nullptr;
     return 0;
 }
