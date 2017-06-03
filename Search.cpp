@@ -44,5 +44,10 @@ int main(int argc, char* argv[])
             std::cout << h.getFileName() << " ";
         }
     }
+    for(auto it = in_items_vec->begin(); it != in_items_vec->end(); ++it)
+    {
+        delete ((*it).first);
+        delete ((*it).second);
+    }
     return 0;
 }

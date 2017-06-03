@@ -87,4 +87,5 @@ void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const
         exit(EXIT_FAILURE);
     }
     Emit3(fileNameReduce , numOfFiles);
+
 }
