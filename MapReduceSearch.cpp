@@ -63,7 +63,7 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
             Emit2(currFile, one);
         }
     }
-    delete(one);
+
 }
 
 void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const

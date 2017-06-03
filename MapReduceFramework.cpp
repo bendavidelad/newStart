@@ -411,12 +411,6 @@ void deletePreShuffleThreadsContainerK2V2Global()
 {
     for (int j = 0; j < multiThreadLevelGlobal; ++j)
     {
-        auto it = (preShuffleThreadsContainerK2V2Global[threadsGlobal[j]])->begin();
-        for(it; it!= (preShuffleThreadsContainerK2V2Global[threadsGlobal[j]])->end(); ++it)
-        {
-            delete ((*it).first);
-            delete((*it).second);
-        }
         delete preShuffleThreadsContainerK2V2Global[threadsGlobal[j]];
     }
 }
@@ -499,11 +493,21 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     ret *= 1000;
     log("Reduce took " + to_string(ret) + "ns\n");
     log("RunMapReduceFramework finished\n" );
-    for(auto iter = containerReduceK3V3Global.begin() ; iter != containerReduceK3V3Global.end(); ++iter)
+    for(auto iter = postShuffleContainerK2V2VECGlobal.begin() ; iter != postShuffleContainerK2V2VECGlobal.end(); ++iter)
     {
-        delete((*iter).second);
+        delete(*iter).first;
     }
 
+    for(auto iter = containerReduceK3V3Global.begin() ; iter != containerReduceK3V3Global.end(); ++iter)
+    {
+        auto iter2 = ((*iter).second)->begin();
+        for(iter2; iter2 != ((*iter).second)->end(); ++iter2)
+        {
+            delete(*iter2);
+        }
+        delete(((*iter).second).);
+
+    }
     return outContainer;
 }
 
