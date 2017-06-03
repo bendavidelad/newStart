@@ -40,17 +40,16 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
         return;
     }
 
-
-    OneClass* one;
-    try{
-        one = new OneClass();
-    }catch(const std::bad_alloc&) {
-        cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
-        exit(EXIT_FAILURE);
-    }
     for (std::list<std::string>::const_iterator iterator = filesInCurrentFolder.begin(), end
             = filesInCurrentFolder.end(); iterator != end; ++iterator)
     {
+        OneClass* one;
+        try{
+            one = new OneClass();
+        }catch(const std::bad_alloc&) {
+            cerr << ERROR_MSG <<FUNC_NAME_MAP<< ERROR_MSG_END << endl;
+            exit(EXIT_FAILURE);
+        }
         if ((*iterator).find(patternString) != std::string::npos) {
             FileName* currFile;
             try{
@@ -63,7 +62,6 @@ void MapReduceSearch::Map(const k1Base *const key, const v1Base *const val) cons
             Emit2(currFile, one);
         }
     }
-
 }
 
 void MapReduceSearch::Reduce(const k2Base *const key, const V2_VEC &vals) const

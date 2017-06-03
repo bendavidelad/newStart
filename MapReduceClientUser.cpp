@@ -51,7 +51,6 @@ int OneClass::getOne()const {
 }
 
 OneClass::~OneClass() {
-    std::cout<<"distructor\n";//TODO
 }
 
 OneClass::OneClass() {

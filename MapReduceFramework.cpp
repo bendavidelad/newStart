@@ -499,12 +499,7 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
         auto iter2 = ((*iter).second).begin();
         for(iter2; iter2 != ((*iter).second).end(); ++iter2)
         {
-
-
-            OneClass* checkk =(OneClass*) (*iter2);
-            cout<<checkk->getOne();
-            cout<<"ssssssssssssssssssss";
-//            delete(*iter2);
+            delete(*iter2);
         }
     }
 
