@@ -11,7 +11,7 @@
 #include "semaphore.h"
 #include <sys/time.h>
 #include <math.h>
-
+#include <assert.h>
 
 
 
@@ -292,10 +292,11 @@ void* shuffle(void*)
         {
             while (preShuffleThreadsContainerK2V2Global[threadsGlobal[k]]->size() != 0)
             {
-                
+                pthread_t currThreadID  = threadsGlobal[k];
+                pthread_mutex_lock(&mutexMapGlobal[currThreadID]);
                 pair<k2Base*, v2Base*> currPair = preShuffleThreadsContainerK2V2Global[threadsGlobal[k]]->back();
                 preShuffleThreadsContainerK2V2Global.at(threadsGlobal[k])->pop_back();
-//                if(currPair.first!=NULL &&currPair.second!=NULL)
+                pthread_mutex_unlock(&mutexMapGlobal[currThreadID]);
                 postShuffleContainerK2V2VECGlobal[currPair.first].push_back(currPair.second);
 
 
@@ -500,6 +501,7 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2)
                 return *k2Base1 < *k2Base2;
             }
     );
+    cout << "here1" << endl;
     gettimeofday(&startMap, NULL);
     log("RunMapReduceFramework started with " + to_string(multiThreadLevel) + " threads\n");
     itemsVecPlace = (int)itemsVec.size();
@@ -512,7 +514,9 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2)
     sem_init(&semaphoreShuffle,WORK_BETWEEN_THE_PROCESSES,semaphoreShuffleInt);
     //mutex lock(x)-> so we connect between thread id and the container
     pthread_mutex_lock(&mutexThreadCreation);
+    cout << "here2" << endl;
     creatingThreadsMap();
+    cout << "here3" << endl;
     //unlock mutex (x);
     pthread_mutex_unlock(&mutexThreadCreation);
     //the shuffle will activate only after the first emit (which will post the semaphore)
@@ -523,8 +527,12 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2)
         cerr<<ERROR_MSG<<FUNC_NAME_RUN_MAP_REDUCE_FRAMEWORK<<ERROR_MSG_END<<endl;
         exit(EXIT_FAILURE);
     }
+    cout << "here4" << endl;
+
     //waiting until all the threads will finish
     joinThreads();
+    cout << "here5" << endl;
+
     //in this point all the treads definitely have finished
     isJoin = true;
     joinShuffle(shuffleID);
