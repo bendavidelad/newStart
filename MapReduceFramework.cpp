@@ -501,22 +501,19 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2)
                 return *k2Base1 < *k2Base2;
             }
     );
-    cout << "here1" << endl;
     gettimeofday(&startMap, NULL);
     log("RunMapReduceFramework started with " + to_string(multiThreadLevel) + " threads\n");
     itemsVecPlace = (int)itemsVec.size();
     mapReduceGlobal = &mapReduce;
     multiThreadLevelGlobal = multiThreadLevel;
     //a var that holds the vector of k1,v1
-    givenVectorK1V1Global  = itemsVec;
+    givenVectorK1V1Global = itemsVec;
     threadsGlobal.resize((unsigned long)multiThreadLevel);
     //Initial the shuffle semaphore
     sem_init(&semaphoreShuffle,WORK_BETWEEN_THE_PROCESSES,semaphoreShuffleInt);
     //mutex lock(x)-> so we connect between thread id and the container
     pthread_mutex_lock(&mutexThreadCreation);
-    cout << "here2" << endl;
     creatingThreadsMap();
-    cout << "here3" << endl;
     //unlock mutex (x);
     pthread_mutex_unlock(&mutexThreadCreation);
     //the shuffle will activate only after the first emit (which will post the semaphore)
@@ -527,11 +524,9 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2)
         cerr<<ERROR_MSG<<FUNC_NAME_RUN_MAP_REDUCE_FRAMEWORK<<ERROR_MSG_END<<endl;
         exit(EXIT_FAILURE);
     }
-    cout << "here4" << endl;
 
     //waiting until all the threads will finish
     joinThreads();
-    cout << "here5" << endl;
 
     //in this point all the treads definitely have finished
     isJoin = true;
