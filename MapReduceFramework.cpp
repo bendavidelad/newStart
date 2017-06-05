@@ -19,6 +19,7 @@
 #define EXIT_FAILURE 1
 
 
+
 //########################################################################
 // Typedefs
 using namespace std;
@@ -45,23 +46,15 @@ IN_ITEMS_VEC givenVectorK1V1Global;
 int multiThreadLevelGlobal;
 std::vector<pthread_t> threadsGlobal(0);
 unordered_map<pthread_t , vectorOfPairsK2BaseV2Base*> preShuffleThreadsContainerK2V2Global;
-
 std::map<k2Base*, V2_VEC , bool (*)(k2Base* , k2Base*)> postShuffleContainerK2V2VECGlobal;
-
 unordered_map<pthread_t , OUT_ITEMS_VEC*> containerReduceK3V3Global;
-
 std::ofstream ofs("MapReduceFramework.log", std::ofstream::out);
-
 char buffer[26];
 struct tm* tm_info;
 struct timeval tv;
-
 struct timeval startMap , endMap , startReduce , endReduce;
-
 bool isJoin = false;
-
 double ret;
-
 //########################################################################
 // Semaphores
 const int semaphoreShuffleInt = 0;
@@ -70,10 +63,9 @@ const int WORK_BETWEEN_THE_PROCESSES = 0;
 
 //########################################################################
 //  Mutex
-pthread_mutex_t mutexItemsVec = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutexThreadCreation = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutexLogFile = PTHREAD_MUTEX_INITIALIZER;
-
+pthread_mutex_t mutexItemsVec;
+pthread_mutex_t mutexThreadCreation;
+pthread_mutex_t mutexLogFile;
 unordered_map<pthread_t, pthread_mutex_t> mutexMapGlobal;
 
 
@@ -291,9 +283,13 @@ void* shuffle(void*)
         {
             while (preShuffleThreadsContainerK2V2Global[threadsGlobal[k]]->size() != 0)
             {
-                pair<k2Base*, v2Base*> currPair = preShuffleThreadsContainerK2V2Global.at(threadsGlobal[k])->back();
+                
+                pair<k2Base*, v2Base*> currPair = preShuffleThreadsContainerK2V2Global[threadsGlobal[k]]->back();
                 preShuffleThreadsContainerK2V2Global.at(threadsGlobal[k])->pop_back();
+//                if(currPair.first!=NULL &&currPair.second!=NULL)
                 postShuffleContainerK2V2VECGlobal[currPair.first].push_back(currPair.second);
+
+
                 sem_wait(&semaphoreShuffle);
             }
         }
@@ -331,6 +327,7 @@ void creatingThreadsMap()
         pthread_mutex_t thread_mutex;
         pthread_mutex_init(&thread_mutex, NULL);
         //make the pair for the mutex map that
+
         std::pair<pthread_t, pthread_mutex_t> pairToMutexMap = make_pair(threadsGlobal[i], thread_mutex);
         mutexMapGlobal.insert(pairToMutexMap);
         if (threadCreation)
@@ -462,11 +459,21 @@ void getTimeEnd()
     ret *= 1000;
     log("Reduce took " + to_string(ret) + "ns\n");
     log("RunMapReduceFramework finished\n" );
-    deletePostShuffleAndk3v3Reducer();
-    destroyAllMutex();
+
 }
 
-
+void initAll()
+{
+    mutexMapGlobal.clear();
+    givenVectorK1V1Global.clear();
+    threadsGlobal.clear();
+    preShuffleThreadsContainerK2V2Global.clear();
+    postShuffleContainerK2V2VECGlobal.clear();
+    containerReduceK3V3Global.clear();
+    mutexItemsVec = PTHREAD_MUTEX_INITIALIZER;
+    mutexThreadCreation = PTHREAD_MUTEX_INITIALIZER;
+    mutexLogFile = PTHREAD_MUTEX_INITIALIZER;
+}
 /**
  *
  * @param mapReduce
@@ -476,7 +483,9 @@ void getTimeEnd()
  * @return OUT_ITEMS_VEC if succecd ,Null otherwise
  */
 OUT_ITEMS_VEC RunMapReduceFramework(MapReduceBase &mapReduce, IN_ITEMS_VEC &
-itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
+itemsVec, int multiThreadLevel, bool autoDeleteV2K2)
+{
+    initAll();
     postShuffleContainerK2V2VECGlobal = map<k2Base*,V2_VEC,bool(*)(k2Base*,k2Base*)>(
             [](k2Base* k2Base1, k2Base* k2Base2)->bool {
                 return *k2Base1 < *k2Base2;
@@ -538,6 +547,8 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
         return (*left.first) < (*right.first);
     });
     getTimeEnd();
+    deletePostShuffleAndk3v3Reducer();
+    destroyAllMutex();
     return outContainer;
 }
 

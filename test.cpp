@@ -66,9 +66,10 @@ struct MapReduceImp : public MapReduceBase
 
 int main(int argc, char *argv[])
 {
+    int l = 0;
     IN_ITEMS_VEC v;
-//    for (int k = 0 ; k < 10 ; k++)
-//    {
+    for (int k = 0 ; k < 2 ; k++)
+    {
         for (int i = 0; i < NUM_ITERS; ++i)
         {
             auto s = new NumWrapper();
@@ -93,5 +94,5 @@ int main(int argc, char *argv[])
             delete v.at(i).first;
             delete v.at(i).second;
         }
-//    }
+    }
 }
