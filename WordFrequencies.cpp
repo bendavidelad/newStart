@@ -1,5 +1,4 @@
 #include "WordFrequenciesClient.hpp"
-#include "MapReduceFramework.h"
 #include <algorithm>
 
 #define NUM_THREADS 8

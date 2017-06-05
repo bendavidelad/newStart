@@ -5,8 +5,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "MapReduceClient.h"
-#include "MapReduceFramework.h"
+#include "../Framework/MapReduceClient.h"
+#include "../Framework/MapReduceFramework.h"
 
 class Line : public k1Base
 {

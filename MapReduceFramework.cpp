@@ -417,6 +417,37 @@ void deletePreShuffleThreadsContainerK2V2Global()
     }
 }
 
+void deletePostShuffleAndk3v3Reducer()
+{
+    for(auto iter = postShuffleContainerK2V2VECGlobal.begin() ; iter != postShuffleContainerK2V2VECGlobal.end(); ++iter)
+    {
+        delete (*iter).first;
+        auto iter2 = ((*iter).second).begin();
+        for(iter2; iter2 != ((*iter).second).end(); ++iter2)
+        {
+            delete(*iter2);
+            (*iter2) = nullptr;
+        }
+    }
+
+    for(auto iter = containerReduceK3V3Global.begin() ; iter != containerReduceK3V3Global.end(); ++iter)
+    {
+        delete((*iter).second);
+        ((*iter).second) = nullptr;
+    }
+}
+
+void destroyAllMutex()
+{
+    pthread_mutex_destroy(&mutexItemsVec);
+    pthread_mutex_destroy(&mutexLogFile);
+    pthread_mutex_destroy(&mutexThreadCreation);
+    auto it = mutexMapGlobal.begin();
+    for(it; it != mutexMapGlobal.end(); ++it)
+    {
+        pthread_mutex_destroy(&((*it).second));
+    }
+}
 
 /**
  *
@@ -449,7 +480,6 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     //unlock mutex (x);
     pthread_mutex_unlock(&mutexThreadCreation);
     //the shuffle will activate only after the first emit (which will post the semaphore)
-    sem_wait(&semaphoreShuffle);
     pthread_t shuffleID;
     int threadCreation = pthread_create(&shuffleID , NULL , shuffle , NULL);
     if (threadCreation)
@@ -494,22 +524,9 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     ret *= 1000;
     log("Reduce took " + to_string(ret) + "ns\n");
     log("RunMapReduceFramework finished\n" );
-    for(auto iter = postShuffleContainerK2V2VECGlobal.begin() ; iter != postShuffleContainerK2V2VECGlobal.end(); ++iter)
-    {
-        delete (*iter).first;
-        auto iter2 = ((*iter).second).begin();
-        for(iter2; iter2 != ((*iter).second).end(); ++iter2)
-        {
-            delete(*iter2);
-            (*iter2) = nullptr;
-        }
-    }
 
-    for(auto iter = containerReduceK3V3Global.begin() ; iter != containerReduceK3V3Global.end(); ++iter)
-    {
-        delete((*iter).second);
-        ((*iter).second) = nullptr;
-    }
+    deletePostShuffleAndk3v3Reducer();
+    destroyAllMutex();
     return outContainer;
 }
 
