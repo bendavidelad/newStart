@@ -77,6 +77,12 @@ pthread_mutex_t mutexLogFile = PTHREAD_MUTEX_INITIALIZER;
 unordered_map<pthread_t, pthread_mutex_t> mutexMapGlobal;
 
 
+string currentTime(){
+    gettimeofday(&tv, NULL);
+    tm_info = localtime(&tv.tv_sec);
+    strftime(buffer, 26, "%d.%m.%Y %H:%M:%S", tm_info);
+    return buffer;
+}
 
 void log( const std::string &text)
 {
@@ -86,12 +92,15 @@ void log( const std::string &text)
 }
 
 
-string getTime(){
-    gettimeofday(&tv, NULL);
-    tm_info = localtime(&tv.tv_sec);
-    strftime(buffer, 26, "%d.%m.%Y %H:%M:%S", tm_info);
-    return buffer;
+void logWithTime(string startMessage , string endMessage){
+    pthread_mutex_lock(&mutexLogFile);
+
+    ofs << startMessage << currentTime() << endMessage;
+
+    pthread_mutex_unlock(&mutexLogFile);
+
 }
+
 
 /**
  *  A function that takes a chunk from the vector
@@ -186,7 +195,7 @@ void* execMap(void*)
 {
     string startMessage = "Thread ExecMap created [";
     string endMessage = "]\n";
-    log(startMessage + getTime() + endMessage);
+    logWithTime(startMessage ,endMessage);
 
     pthread_mutex_lock(&mutexThreadCreation);
     //lock(x) ->here all the threads wait for the main thread to finish making all the threads
@@ -212,7 +221,7 @@ void* execMap(void*)
 
     startMessage = "Thread ExecMap terminated [";
     endMessage = "]\n";
-    log(startMessage + getTime() + endMessage);
+    logWithTime(startMessage ,endMessage);
 
     pthread_exit(NULL);
 }
@@ -222,7 +231,7 @@ void* execReduce(void*)
 {
     string startMessage = "Thread ExecReduce created [";
     string endMessage = "]\n";
-    log(startMessage + getTime() + endMessage);
+    logWithTime(startMessage ,endMessage);
 
     pthread_mutex_lock(&mutexThreadCreation);
     //lock(x) ->here all the threads wait for the main thread to finish making all the threads
@@ -247,7 +256,7 @@ void* execReduce(void*)
 
     startMessage = "Thread ExecReduce terminated [";
     endMessage = "]\n";
-    log(startMessage + getTime() + endMessage);
+    logWithTime(startMessage ,endMessage);
 
     pthread_exit(NULL);
 }
@@ -262,7 +271,7 @@ void* shuffle(void*)
 {
     string startMessage = "Thread Shuffle created [";
     string endMessage = "]\n";
-    log(startMessage + getTime() + endMessage);
+    logWithTime(startMessage ,endMessage);
 
     while(!isJoin)
     {
@@ -301,7 +310,7 @@ void* shuffle(void*)
 
     startMessage = "Thread Shuffle terminated [";
     endMessage = "]\n";
-    log(startMessage + getTime() + endMessage);
+    logWithTime(startMessage ,endMessage);
 
     pthread_exit(NULL);
 }
