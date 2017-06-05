@@ -5,24 +5,15 @@
 #include <list>
 #include <unordered_map>
 #include <algorithm>
-#include <ios>
-#include <bits/ios_base.h>
 #include <fstream>
-#include <iostream>
 #include <zconf.h>
 #include "MapReduceFramework.h"
 #include "semaphore.h"
-#include <unistd.h>
-#include <stdio.h>
 #include <sys/time.h>
-#include <time.h>
 #include <math.h>
-#include <sys/time.h>
-
-#define GetCurrentDir getcwd
 
 
-#include "MapReduceClientUser.h"
+
 
 #define KEYS_PER_THREAD 10
 #define EXIT_FAILURE 1
@@ -44,6 +35,7 @@ static const std::string FUNC_NAME_CREATING_THREADS_MAP = "creatingThreadsMap";
 static const std::string FUNC_NAME_CREATING_THREADS_REDUCE= "creatingThreadsReduce";
 static const std::string FUNC_NAME_RUN_MAP_REDUCE_FRAMEWORK = "RunMapReduceFramework";
 static const std::string FUNC_NAME_JOIN_THREADS= "jointhreads";
+static const std::string FUNC_NAME_DESTROY= "destroyAllMutex";
 
 
 //########################################################################
@@ -68,7 +60,7 @@ struct timeval startMap , endMap , startReduce , endReduce;
 
 bool isJoin = false;
 
-
+double ret;
 
 //########################################################################
 // Semaphores
@@ -439,15 +431,41 @@ void deletePostShuffleAndk3v3Reducer()
 
 void destroyAllMutex()
 {
-    pthread_mutex_destroy(&mutexItemsVec);
-    pthread_mutex_destroy(&mutexLogFile);
-    pthread_mutex_destroy(&mutexThreadCreation);
+    int er1 = pthread_mutex_destroy(&mutexItemsVec);
+    int er2 = pthread_mutex_destroy(&mutexLogFile);
+    int er3 = pthread_mutex_destroy(&mutexThreadCreation);
+    if(er1==-1||er2==-1||er3==-1)
+    {
+        cerr<<ERROR_MSG<<FUNC_NAME_DESTROY<<ERROR_MSG_END<<endl;
+    }
     auto it = mutexMapGlobal.begin();
     for(it; it != mutexMapGlobal.end(); ++it)
     {
-        pthread_mutex_destroy(&((*it).second));
+        int r = pthread_mutex_destroy(&((*it).second));
+        if(r==-1)
+        {
+            cerr<<ERROR_MSG<<FUNC_NAME_DESTROY<<ERROR_MSG_END<<endl;
+
+        }
     }
+    int rc = sem_destroy(&semaphoreShuffle);
+    if (rc == -1)
+    {
+        cerr<<ERROR_MSG<<FUNC_NAME_DESTROY<<ERROR_MSG_END<<endl;
+    }
+
 }
+void getTimeEnd()
+{
+    gettimeofday(&endReduce, NULL);
+    ret = ((endReduce.tv_usec) - (startReduce.tv_usec));
+    ret *= 1000;
+    log("Reduce took " + to_string(ret) + "ns\n");
+    log("RunMapReduceFramework finished\n" );
+    deletePostShuffleAndk3v3Reducer();
+    destroyAllMutex();
+}
+
 
 /**
  *
@@ -499,7 +517,7 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
         deletePreShuffleThreadsContainerK2V2Global();
     }
     gettimeofday(&endMap, NULL);
-    double ret = ((endMap.tv_usec) - (startMap.tv_usec));
+    ret = ((endMap.tv_usec) - (startMap.tv_usec));
     ret *= 1000;
     log("Map and Shuffle took " + to_string(ret) + "ns\n");
     gettimeofday(&startReduce, NULL);
@@ -519,20 +537,14 @@ itemsVec, int multiThreadLevel, bool autoDeleteV2K2){
     std::sort(outContainer.begin(), outContainer.end(), [](const OUT_ITEM &left, const OUT_ITEM &right) {
         return (*left.first) < (*right.first);
     });
-    gettimeofday(&endReduce, NULL);
-    ret = ((endReduce.tv_usec) - (startReduce.tv_usec));
-    ret *= 1000;
-    log("Reduce took " + to_string(ret) + "ns\n");
-    log("RunMapReduceFramework finished\n" );
-
-    deletePostShuffleAndk3v3Reducer();
-    destroyAllMutex();
+    getTimeEnd();
     return outContainer;
 }
 
 
 
-void Emit2 (k2Base* k2, v2Base* v2){
+void Emit2 (k2Base* k2, v2Base* v2)
+{
     pthread_t currThreadID  = pthread_self();
     vectorOfPairsK2BaseV2Base *currContainer =  preShuffleThreadsContainerK2V2Global.at(currThreadID);
     std::pair<k2Base* , v2Base*> currPair = make_pair(k2 , v2);
@@ -544,8 +556,8 @@ void Emit2 (k2Base* k2, v2Base* v2){
     sem_post(&semaphoreShuffle);
 }
 
-void Emit3 (k3Base* k3, v3Base* v3){
-
+void Emit3 (k3Base* k3, v3Base* v3)
+{
     pthread_t currThreadID  = pthread_self();
     OUT_ITEMS_VEC *currContainer =  containerReduceK3V3Global.at(currThreadID);
     std::pair<k3Base* , v3Base*> currPair = make_pair(k3 , v3);
